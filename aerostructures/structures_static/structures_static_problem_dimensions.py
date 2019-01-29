@@ -28,6 +28,9 @@ class StaticStructureProblemDimensions:
         #Number of stringer properties
         self.sn = self.structure_dimensions['sn']
 
+        #Number of rod properties
+        self.an = self.structure_dimensions['an']
+
         #Number of structural nodes on the outer surface
         self.ns = len(self.node_id)
 
@@ -46,6 +49,7 @@ class StaticStructureProblemDimensions:
         tn = 0
         mn = 0
         sn = 0
+        an = 0
         n_stress = 0
 
         #Read the list of nodes belonging to the outer surface from the template file
@@ -82,9 +86,14 @@ class StaticStructureProblemDimensions:
                     #Store number of different stringer properties
                     elif line[0] == 'PBAR':
                         sn += 1
-                    #Store number of stress outputs
+                    #Store number of different rod properties
+                    elif line[0] == 'PROD':
+                        an += 1
+                    #Store number of stress outputs (2 stress values per surface, 1 stress value per rod)
                     elif line[0] == 'CTRIA3' or line[0] == 'CQUAD4':
                         n_stress += 2
+                    elif line[0] == 'CROD':
+                        n_stress += 1
 
         #Order total nodes according to their ID and remove duplicates
         node_id_all = map(int, node_id_all)
@@ -100,6 +109,7 @@ class StaticStructureProblemDimensions:
         structure_dimensions['tn'] = tn
         structure_dimensions['mn'] = mn
         structure_dimensions['sn'] = sn
+        structure_dimensions['an'] = an
         structure_dimensions['n_stress'] = n_stress
 
         return structure_dimensions
