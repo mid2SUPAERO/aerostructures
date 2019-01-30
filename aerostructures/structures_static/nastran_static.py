@@ -16,11 +16,13 @@ from aerostructures.number_formatting.field_writer_8 import print_float_8
 
 from aerostructures.number_formatting.is_number import isfloat, isint
 
+from aerostructures.number_formatting.nastran_pch_reader import PchParser
+
 class NastranStatic(ExternalCode):
     template_file = 'nastran_static_template.inp'
 
 
-    def __init__(self, node_id, node_id_all, n_stress, tn, mn, sn, case_name):
+    def __init__(self, node_id, node_id_all, n_stress, tn, mn, sn, case_name, an=0):
         super(NastranStatic, self).__init__()
 
         #Identification number of the outer surface nodes
@@ -47,6 +49,9 @@ class NastranStatic(ExternalCode):
         #Number of stringer sections
         self.sn = sn
 
+        #Number of rod sections
+        self.an = an
+
         #Case name (for file naming)
         self.case_name = case_name
 
@@ -70,6 +75,9 @@ class NastranStatic(ExternalCode):
 
         #Vector containing second bending inertia of the stringers
         self.add_param('Iy', val=np.zeros(self.sn))
+
+        #Vector containing the cross section (area) of rod elements
+        self.add_param('a', val=np.zeros(self.an))
 
         #Young's modulus
         self.add_param('E', val=1.)
@@ -135,6 +143,7 @@ class NastranStatic(ExternalCode):
         s = params['s']
         Ix = params['Ix']
         Iy = params['Iy']
+        a = params['a']
         E = params['E']
         nu = params['nu']
         rho_s = params['rho_s']
@@ -167,6 +176,10 @@ class NastranStatic(ExternalCode):
             input_data['s'+str(i+1)] = print_float_8(s[i])
             input_data['Ix'+str(i+1)] = print_float_8(Ix[i])
             input_data['Iy'+str(i+1)] = print_float_8(Iy[i])
+
+        #Assign each rod section value to its corresponding ID in the input data dictionary
+        for i in range(len(a)):
+            input_data['a'+str(i+1)] = print_float_8(a[i])
 
         #Assign the Young's modulus to its input data dictionary key
         input_data['E'] = print_float_8(E)
@@ -209,36 +222,43 @@ class NastranStatic(ExternalCode):
 
         shell_stress = []
 
+        rod_stress = []
+
         mass = 0.
 
         #Read the Nastran punch file (.pnh) and extract displacement and stress data
-        with open(self.output_filepath) as f:
-            lines = f.readlines()
-            lines = [i.split() for i in lines]
+        parser = PchParser(self.output_filepath)
 
-            for i in range(len(lines)):
-                if len(lines[i]) > 1:
+        node_disp = parser.get_displacements(1)
+        elm_stress = parser.get_stresses(1)
 
-                    #Write nodal displacements onto u if the node belongs to the outer surface
-                    if lines[i][0] in self.node_id and lines[i][1] == 'G':
-                        u[self.node_id.index(lines[i][0])][0] = lines[i][2]
-                        u[self.node_id.index(lines[i][0])][1] = lines[i][3]
-                        u[self.node_id.index(lines[i][0])][2] = lines[i][4]
+        #Write nodal displacements onto u if the node belongs to the outer surface
+        for node in node_disp:
+            if str(node) in self.node_id:
+                node_index = self.node_id.index(str(node))
+                for i in range(3):
+                    u[node_index][i] = node_disp[node][i]
 
-                    if isint(lines[i][0]) and isfloat(lines[i][1]):
-                        if lines[i] is not lines[-2]:
-                            if lines[i+2][0] == '-CONT-':
-                                #Store stresses only if the element is of shell type:
-                                if lines[i+1][0] == '-CONT-' and lines[i+2][0] == '-CONT-' and lines[i+3][0] == '-CONT-' and lines[i+4][0] == '-CONT-' and lines[i+5][0] == '-CONT-':
-                                    #Write shell principal stresses onto a list (upper and lower shell faces)
-                                    shell_stress.append(((float(lines[i+1][3]), float(lines[i+2][1])), (float(lines[i+4][2]), float(lines[i+4][3]))))
+        #Write shell principal stresses onto a list (upper and lower shell faces)
+        for elm in elm_stress:
+            #Write shell principal stresses onto a list (upper and lower shell faces)
+            if len(elm_stress[elm]) == 16:
+                shell_stress.append(
+                    ((elm_stress[elm][5], elm_stress[elm][6]), (elm_stress[elm][13], elm_stress[elm][14])))
 
-        #Compute the Von Mises Stress on the structure
+            #Write rod axial stresses into a list
+            elif len(elm_stress[elm]) == 4:
+                rod_stress.append(elm_stress[elm][0])
+
+        #Compute the Von Mises Stresses on the structure
         VM = []
 
         for s in shell_stress:
             VM.append(np.sqrt(s[0][0]**2 - s[0][0]*s[0][1] + s[0][1]**2))
             VM.append(np.sqrt(s[1][0]**2 - s[1][0]*s[1][1] + s[1][1]**2))
+
+        for r in rod_stress:
+            VM.append(abs(r))
 
         VMStress = np.asarray(VM)
 
