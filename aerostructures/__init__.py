@@ -1,5 +1,6 @@
 from aerostructures.number_formatting.field_writer_8 import print_float_8
 from aerostructures.number_formatting.is_number import isint, isfloat
+from aerostructures.number_formatting.nastran_pch_reader import PchParser
 
 from aerostructures.data_transfer.displacement_transfer import DisplacementTransfer
 from aerostructures.data_transfer.interpolation import Interpolation

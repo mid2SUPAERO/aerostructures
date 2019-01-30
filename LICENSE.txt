@@ -1,10 +1,10 @@
 Copyright (c) 2018, ONERA
 All rights reserved.
 
-Copyright (c) 2018, ISAE
+Copyright (c) 2018-2019, ISAE
 All rights reserved.
 
-Copyright (c) 2018, Joan Mas Colomer
+Copyright (c) 2018-2019, Joan Mas Colomer
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -47,3 +47,8 @@ Name: pyNastran
 Files: aerostructures/number_formatting/field_writer_8.py
 License: 3-clause BSD
   For details, see the header inside aerostructures/number_formatting/field_writer_8.py
+
+Name: nastran_pch_reader
+Files: aerostructures/number_formatting/nastran_pch_reader.py
+License: 3-clause BSD
+  For details, For details, see the header inside aerostructures/number_formatting/field_writer_8.py
