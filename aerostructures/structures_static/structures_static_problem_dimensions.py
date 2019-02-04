@@ -95,12 +95,16 @@ class StaticStructureProblemDimensions:
                     elif line[0] == 'CROD':
                         n_stress += 1
 
-        #Order total nodes according to their ID and remove duplicates
+        #Order nodes according to their ID and remove duplicates
         node_id_all = map(int, node_id_all)
         node_id_all = sorted(set(node_id_all))
 
+        node_id = map(int, node_id)
+        node_id = sorted(set(node_id))
+
         #Convert to string
         node_id_all = [str(node) for node in node_id_all]
+        node_id = [str(node) for node in node_id]
 
         #Dictionary containing structure problem data
         structure_dimensions = {}
