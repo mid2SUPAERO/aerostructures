@@ -44,9 +44,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import cmath
 
-#Modified by Joan Mas Colomer Jan 30, 2019
+#Modified by Joan Mas Colomer Feb 18, 2019
 CONST_VALID_REQUESTS = ['ACCELERATION', 'DISPLACEMENTS', 'MPCF',
-                        'SPCF', 'ELEMENT FORCES', 'ELEMENT STRAINS', 'ELEMENT STRESSES']
+                        'SPCF', 'ELEMENT FORCES', 'ELEMENT STRAINS', 'ELEMENT STRESSES', 'EIGENVECTOR']
 
 
 def dispatch_parse(output, data_chunks):
@@ -126,6 +126,9 @@ class PchParser:
                 #Modified by Joan Mas Colomer Jan 30, 2019
                 elif line.startswith('$ELEMENT STRESSES'):
                     self.cur_request = 'ELEMENT STRESSES'
+                #Modified by Joan Mas Colomer Feb 18, 2019
+                elif line.startswith('$EIGENVECTOR'):
+                    self.cur_request = 'EIGENVECTOR'
 
                 # identify output type
                 if line.startswith('$REAL-IMAGINARY OUTPUT'):
@@ -249,6 +252,10 @@ class PchParser:
     #Modified by Joan Mas Colomer Jan 30, 2019
     def get_stresses(self, subcase):
         return self.__get_data_per_request('ELEMENT STRESSES', subcase)
+
+    #Modified by Joan Mas Colomer Feb 18, 2019
+    def get_eigenvectors(self, subcase):
+        return self.__get_data_per_request('EIGENVECTOR', subcase)
 
     def get_frequencies(self, subcase):
         return sorted(self.parsed_data['FREQUENCY'][subcase])
