@@ -1,10 +1,10 @@
 from setuptools import setup
 
 setup(name='aerostructures',
-      version='0.1',
+      version='1.0',
       description='Aerostructural analysis using OpenMDAO',
       author='Joan Mas Colomer',
-      author_email='joan.mas_colomer@onera.fr',
+      author_email='joan.mas-colomer2@isae-supaero.fr>',
       packages=['aerostructures',
 				'aerostructures.aerodynamics',
                     'aerostructures.data_transfer',
