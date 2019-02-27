@@ -21,8 +21,6 @@ from aerostructures.structures_dynamic.structures_dynamic_problem_dimensions imp
 from aerostructures.structures_dynamic.structures_dynamic_problem_params import DynamicStructureProblemParams
 from aerostructures.structures_dynamic.modal_functions import ModalFunctions
 
-from aerostructures.solvers.nl_gauss_seidel import NLGaussSeidel
-
 from aerostructures.openmdao_tools.mixed_input_des_var_t import MixedInputDesvarT
 from aerostructures.openmdao_tools.mixed_input_des_var_m import MixedInputDesvarM
 

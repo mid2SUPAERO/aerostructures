@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='aerostructures',
-      version='1.0',
+      version='2.0',
       description='Aerostructural analysis using OpenMDAO',
       author='Joan Mas Colomer',
       author_email='joan.mas-colomer2@isae-supaero.fr>',
@@ -15,4 +15,4 @@ setup(name='aerostructures',
                     'aerostructures.solvers',
 				'aerostructures.structures_dynamic',
 				'aerostructures.structures_static'],
-      install_requires=['openmdao==1.7.3'])
+      install_requires=['openmdao>=2.6.0'])

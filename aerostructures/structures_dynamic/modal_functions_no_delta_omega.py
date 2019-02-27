@@ -6,15 +6,13 @@ from __future__ import print_function
 
 import numpy as np
 
-from openmdao.api import Component
+from openmdao.api import ExplicitComponent
 
-#Component which computes scalar functions related to the difference between the reference and actual eigenvectors and eigenvalues
-class ModalFunctions(Component):
+#ExplicitComponent which computes scalar functions related to the difference between the reference and actual eigenvectors and eigenvalues
+class ModalFunctions(ExplicitComponent):
 
 
-    def __init__(self, node_id_all, N, M, mode_tracking=True):
-        super(ModalFunctions, self).__init__()
-
+    def setup(self, node_id_all, N, M, mode_tracking=True):
         #Identification number of all the structural nodes
         self.node_id_all = node_id_all
 
@@ -31,28 +29,28 @@ class ModalFunctions(Component):
         self.mode_tracking = mode_tracking
 
         #Numpy array containing the M extracted normal modes
-        self.add_param('phi', val=np.zeros((3*self.ns_all, self.M)))
+        self.add_input('phi', val=np.zeros((3*self.ns_all, self.M)))
 
         #Numpy array containing the N refernece normal modes
-        self.add_param('phi_ref', val=np.zeros((3*self.ns_all, self.N)))
+        self.add_input('phi_ref', val=np.zeros((3*self.ns_all, self.N)))
 
         #Vector containing the extracted eigenvalues
-        self.add_param('eigval', val=np.zeros(M))
+        self.add_input('eigval', val=np.zeros(M))
 
         #Vector containing the reference eigenvalues
-        self.add_param('eigval_ref', val=np.zeros(N))
+        self.add_input('eigval_ref', val=np.zeros(N))
 
         #Total mass of the scaled model
-        self.add_param('mass', val=0.)
+        self.add_input('mass', val=0.)
 
         #Total mass of the reference model
-        self.add_param('mass_ref', val=0.)
+        self.add_input('mass_ref', val=0.)
 
         #Frequency ratio between Full-Scale and scaled models
-        self.add_param('omega_ratio', val=1.)
+        self.add_input('omega_ratio', val=1.)
 
         #Mass ratio between Full-Scale and scaled models
-        self.add_param('mass_ratio', val=1.)
+        self.add_input('mass_ratio', val=1.)
 
         #Norm of the difference between the vectors containing reference and actual eigenvalues
         self.add_output('delta_omega', val=0.)
@@ -70,23 +68,23 @@ class ModalFunctions(Component):
         self.add_output('MAC_trace', val=0.)
 
 
-    def solve_nonlinear(self, params, unknowns, resids):
+    def compute(self, inputs, outputs):
 
-        phi = self.params['phi']
+        phi = inputs['phi']
 
-        phi_ref = self.params['phi_ref']
+        phi_ref = inputs['phi_ref']
 
-        eigval = self.params['eigval']
+        eigval = inputs['eigval']
 
-        eigval_ref = self.params['eigval_ref']
+        eigval_ref = inputs['eigval_ref']
 
-        mass = self.params['mass']
+        mass = inputs['mass']
 
-        mass_ref = self.params['mass_ref']
+        mass_ref = inputs['mass_ref']
 
-        omega_ratio = self.params['omega_ratio']
+        omega_ratio = inputs['omega_ratio']
 
-        mass_ratio = self.params['mass_ratio']
+        mass_ratio = inputs['mass_ratio']
 
         N = self.N
 
@@ -137,12 +135,12 @@ class ModalFunctions(Component):
         delta_mass = mass - mass_ratio*mass_ref
 
         #Set the computed values as outputs
-        unknowns['delta_omega'] = delta_omega
+        outputs['delta_omega'] = delta_omega
 
-        unknowns['delta_mass'] = delta_mass
+        outputs['delta_mass'] = delta_mass
 
-        unknowns['ord_phi'] = ord_phi
+        outputs['ord_phi'] = ord_phi
 
-        unknowns['ord_eigval'] = ord_eigval
+        outputs['ord_eigval'] = ord_eigval
 
-        unknowns['MAC_trace'] = ord_MAC.trace()
+        outputs['MAC_trace'] = ord_MAC.trace()

@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 
-from openmdao.api import ExternalCode
+from openmdao.api import ExternalCodeComp
 
 import numpy as np
 
@@ -18,15 +18,13 @@ from aerostructures.number_formatting.field_writer_8 import print_float_8
 
 from aerostructures.number_formatting.is_number import isint
 
-class NastranDynamic(ExternalCode):
+class NastranDynamic(ExternalCodeComp):
     template_file = 'nastran_dynamic_template.inp'
 
     output_file = 'nastran_dynamic.out'
 
 
-    def __init__(self, node_id_all, tn, mn, M, eigr, F1, free_free=False):
-        super(NastranDynamic, self).__init__()
-
+    def setup(self, node_id_all, tn, mn, M, eigr, F1, free_free=False):
         #Identification number of all the structural nodes
         self.node_id_all = node_id_all
 
@@ -52,22 +50,22 @@ class NastranDynamic(ExternalCode):
         self.free_free = free_free
 
         #Coordinates of all structural nodes
-        self.add_param('node_coord_all', val=np.zeros((self.ns_all, 3)))
+        self.add_input('node_coord_all', val=np.zeros((self.ns_all, 3)))
 
         #Vector containing the thickness of each region
-        self.add_param('t', val=np.zeros(self.tn))
+        self.add_input('t', val=np.zeros(self.tn))
 
         #Vector containing the concentrated masses' values
-        self.add_param('m', val=np.zeros(self.mn))
+        self.add_input('m', val=np.zeros(self.mn))
 
         #Young's modulus
-        self.add_param('E', val=1.)
+        self.add_input('E', val=1.)
 
         #Poisson's ratio
-        self.add_param('nu', val=0.3)
+        self.add_input('nu', val=0.3)
 
         #Material density
-        self.add_param('rho_s', val=1.)
+        self.add_input('rho_s', val=1.)
 
         #Numpy array containing the N normal modes
         self.add_output('phi', val=np.zeros((3*self.ns_all, self.M)))
@@ -94,37 +92,37 @@ class NastranDynamic(ExternalCode):
         else:
             self.options['command'] = ['nastran.cmd', self.input_filepath.rstrip('.inp')]
 
-    def solve_nonlinear(self, params, unknowns, resids):
+    def compute(self, inputs, outputs):
 
         # Generate the input file for Nastran from the input file template and the design variables
-        self.create_input_file(params)
+        self.create_input_file(inputs)
 
-        # Parent solve_nonlinear function actually runs the external code
-        super(NastranDynamic, self).solve_nonlinear(params, unknowns, resids)
+        # Parent compute function actually runs the external code
+        super(NastranDynamic, self).compute(inputs, outputs)
 
         output_data = self.get_output_data()
 
         # Parse the output file from the external code and set the value of the eigenvectorss
-        unknowns['phi'] = output_data['phi']
+        outputs['phi'] = output_data['phi']
 
         # Parse the output file from the external code and set the value of the eigenvalues
-        unknowns['eigval'] = output_data['eigval']
+        outputs['eigval'] = output_data['eigval']
 
         # Parse the output file from the external code and set the value of the generalized masses
-        unknowns['gen_mass'] = output_data['gen_mass']
+        outputs['gen_mass'] = output_data['gen_mass']
 
         # Parse the output file from the external code and set the value of the total mass
-        unknowns['mass'] = output_data['mass']
+        outputs['mass'] = output_data['mass']
 
 
-    def create_input_file(self, params):
+    def create_input_file(self, inputs):
 
-        node_coord_all = params['node_coord_all']
-        t = params['t']
-        m = params['m']
-        E = params['E']
-        nu = params['nu']
-        rho_s = params['rho_s']
+        node_coord_all = inputs['node_coord_all']
+        t = inputs['t']
+        m = inputs['m']
+        E = inputs['E']
+        nu = inputs['nu']
+        rho_s = inputs['rho_s']
 
         input_data = {}
 

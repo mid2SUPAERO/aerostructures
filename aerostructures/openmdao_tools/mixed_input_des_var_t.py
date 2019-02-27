@@ -6,17 +6,15 @@ from __future__ import print_function
 
 import numpy as np
 
-from openmdao.api import Component
+from openmdao.api import ExplicitComponent
 
 '''
-Component which combines the thickness design variables with the thicknesses of the regions not defined as design variables to create a single input vector for the Nastran components
+ExplicitComponent which combines the thickness design variables with the thicknesses of the regions not defined as design variables to create a single input vector for the Nastran ExplicitComponents
 '''
-class MixedInputDesvarT(Component):
+class MixedInputDesvarT(ExplicitComponent):
 
 
-    def __init__(self, tn, t_desvar_list):
-        super(MixedInputDesvarT, self).__init__()
-
+    def setup(self, tn, t_desvar_list):
         #Number of regions where the thicknesses are defined
         self.tn = tn
 
@@ -24,26 +22,26 @@ class MixedInputDesvarT(Component):
         self.t_desvar_list = t_desvar_list
 
         #Vector containing the baseline or default thickness of each region
-        self.add_param('t_indep', val=np.zeros(self.tn))
+        self.add_input('t_indep', val=np.zeros(self.tn))
 
         #Vector containing thickness design variables
-        self.add_param('t_desvar', val=np.zeros(len(t_desvar_list)))
+        self.add_input('t_desvar', val=np.zeros(len(t_desvar_list)))
 
         #Vector containing the thickness of each region
         self.add_output('t', val=np.zeros(self.tn))
 
 
-    def solve_nonlinear(self, params, unknowns, resids):
+    def compute(self, inputs, outputs):
 
         t_desvar_list = self.t_desvar_list
 
-        t_indep = params['t_indep']
-        t_desvar = params['t_desvar']
+        t_indep = inputs['t_indep']
+        t_desvar = inputs['t_desvar']
 
         t = t_indep
 
-        #Substitute the design variables to create the thickness and mass vectors that are the inputs of Nastran components
+        #Substitute the design variables to create the thickness and mass vectors that are the inputs of Nastran ExplicitComponents
         for i in range(len(t_desvar_list)):
             t[t_desvar_list[i]] = t_desvar[i]
 
-        unknowns['t'] = t
+        outputs['t'] = t

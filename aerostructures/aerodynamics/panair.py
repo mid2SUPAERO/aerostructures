@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 
-from openmdao.api import Component
+from openmdao.api import ExplicitComponent
 
 import numpy as np
 
@@ -22,7 +22,7 @@ import math
 
 from aerostructures.number_formatting.is_number import isfloat, isint
 
-class Panair(Component):
+class Panair(ExplicitComponent):
     aero_template = 'aero_template.wgs'
 
     current_shape = 'aero_current.wgs'
@@ -30,9 +30,7 @@ class Panair(Component):
     aux_panin = 'aux_panin.aux'
 
 
-    def __init__(self, na, network_info, case_name, sym_plane_index=None):
-        super(Panair, self).__init__()
-
+    def setup(self, na, network_info, case_name, sym_plane_index=None):
         #Number of aerodynamic grid points
         self.na = na
 
@@ -46,31 +44,31 @@ class Panair(Component):
         self.case_name = case_name
 
         #Coordinates of the jig shape aerodynamic points (excluding the rot section points)
-        self.add_param('apoints_coord', val=np.zeros((self.na, 3)))
+        self.add_input('apoints_coord', val=np.zeros((self.na, 3)))
 
         #Wing reference area (full aircraft configuration) (m2)
-        self.add_param('Sw', val=1.)
+        self.add_input('Sw', val=1.)
 
         #Airspeed (m/s)
-        self.add_param('V', val=1.)
+        self.add_input('V', val=1.)
 
         #Air density (kg/m3)
-        self.add_param('rho_a', val=1.)
+        self.add_input('rho_a', val=1.)
 
         #Displacements of the aerodynamic grid points
-        self.add_param('delta', val=np.zeros((self.na, 3)))
+        self.add_input('delta', val=np.zeros((self.na, 3)))
 
         #Mach Number
-        self.add_param('Mach', val=0.)
+        self.add_input('Mach', val=0.)
 
         #Angle of attack (alpha) (degrees)
-        self.add_param('alpha', val=0.)
+        self.add_input('alpha', val=0.)
 
         #Wingspan (full aircraft configuration)
-        self.add_param('b', val=1.)
+        self.add_input('b', val=1.)
 
         #Reference chord (c)
-        self.add_param('c', 1.)
+        self.add_input('c', 1.)
 
         #Forces on the aerodynamic grid points
         self.add_output('f_a', val=np.zeros((self.na, 3)))
@@ -85,15 +83,15 @@ class Panair(Component):
 
         self.output_filepath = 'panair.out'
 
-    def solve_nonlinear(self, params, unknowns, resids):
+    def compute(self, inputs, outputs):
 
         case_name = self.case_name
 
         #Generate the wgs geometry for the current deformed shape
-        self.create_current_geom(params)
+        self.create_current_geom(inputs)
 
         #Generate the input file for Panair from the current geometry and flow conditions
-        self.create_input_file(params)
+        self.create_input_file(inputs)
 
         #Clean Panair old files before running it
         os.chdir(case_name)
@@ -118,22 +116,22 @@ class Panair(Component):
         pan_cp = output_data['pan_cp']
 
         # Parse the output file from the external code and set the value of u
-        unknowns['f_a'] = self.get_forces(params, pan_cp)
+        outputs['f_a'] = self.get_forces(inputs, pan_cp)
 
         #Output lift coefficient
-        unknowns['CL'] = output_data['CL']
+        outputs['CL'] = output_data['CL']
 
         #Output induced drag coefficient
-        unknowns['CDi'] = output_data['CDi']
+        outputs['CDi'] = output_data['CDi']
 
 
-    def create_current_geom(self, params):
+    def create_current_geom(self, inputs):
 
         sym_plane_index = self.sym_plane_index
 
         #Compute the coordinates of the displaced points
-        jig_coord = params['apoints_coord']
-        new_coord = jig_coord + params['delta']
+        jig_coord = inputs['apoints_coord']
+        new_coord = jig_coord + inputs['delta']
 
         #Enforce symmetry condition, if existing
         if sym_plane_index is not None:
@@ -178,7 +176,7 @@ class Panair(Component):
 
 
     #Method that creates the Panair input file from an auxiliary file by using Panin
-    def create_input_file(self, params):
+    def create_input_file(self, inputs):
 
         case_name = self.case_name
 
@@ -215,22 +213,22 @@ class Panair(Component):
         f.write('PRECISION 6\n')
 
         #Reference chord
-        f.write('CBAR '+str(params['c'])+'\n')
+        f.write('CBAR '+str(inputs['c'])+'\n')
 
         #Wingspan
-        f.write('SPAN '+str(params['b'])+'\n')
+        f.write('SPAN '+str(inputs['b'])+'\n')
 
         #Wing reference area
-        f.write('SREF '+str(params['Sw'])+'\n')
+        f.write('SREF '+str(inputs['Sw'])+'\n')
 
         #Mach number
-        f.write('MACH '+str(params['Mach'])+'\n')
+        f.write('MACH '+str(inputs['Mach'])+'\n')
 
         #Compressibility angle of attack
-        f.write('ALPC '+str(params['alpha'])+'\n')
+        f.write('ALPC '+str(inputs['alpha'])+'\n')
 
         #Angle of attack
-        f.write('ALPHA '+str(params['alpha'])+'\n')
+        f.write('ALPHA '+str(inputs['alpha'])+'\n')
 
         #Indirect boundary condition on an impermeable thick surface
         f.write('BOUN')
@@ -242,7 +240,7 @@ class Panair(Component):
         #It assumes that the trailing wake is attached to the first edge of the frst network
         #Wake parallel to downstream
         #Wake length: 20 times the semispan
-        f.write('WAKE 1 1 '+str(10*params['b']))
+        f.write('WAKE 1 1 '+str(10*inputs['b']))
 
         f.close()
 
@@ -255,7 +253,7 @@ class Panair(Component):
         p.wait()
 
 
-    def get_forces(self, params, pan_cp):
+    def get_forces(self, inputs, pan_cp):
 
         f_a = np.zeros((self.na, 3))
 
@@ -311,9 +309,9 @@ class Panair(Component):
                 point_cf_nw[ni][i4] = point_cf_nw[ni][i4] + [cfx/4, cfy/4, cfz/4]
 
         #Get the reference wing area, airspeed and density
-        Sw = self.params['Sw']
-        V = self.params['V']
-        rho_a = self.params['rho_a']
+        Sw = self.inputs['Sw']
+        V = self.inputs['V']
+        rho_a = self.inputs['rho_a']
 
         #Store the force coefficients components as an array and dimensionalize to obtain force values
         f_a = 0.5*rho_a*V**2*Sw*np.vstack(point_cf_nw)

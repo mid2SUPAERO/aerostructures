@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 
-from openmdao.api import ExternalCode
+from openmdao.api import ExternalCodeComp
 
 import numpy as np
 
@@ -18,13 +18,11 @@ from aerostructures.number_formatting.is_number import isfloat, isint
 
 from aerostructures.number_formatting.nastran_pch_reader import PchParser
 
-class NastranStatic(ExternalCode):
+class NastranStatic(ExternalCodeComp):
     template_file = 'nastran_static_template.inp'
 
 
-    def __init__(self, node_id, node_id_all, n_stress, tn, mn, sn, case_name, an=0):
-        super(NastranStatic, self).__init__()
-
+    def setup(self, node_id, node_id_all, n_stress, tn, mn, sn, case_name, an=0):
         #Identification number of the outer surface nodes
         self.node_id = node_id
 
@@ -56,40 +54,40 @@ class NastranStatic(ExternalCode):
         self.case_name = case_name
 
         #Forces on the nodes of the outer surface
-        self.add_param('f_node', val=np.zeros((self.ns, 3)))
+        self.add_input('f_node', val=np.zeros((self.ns, 3)))
 
         #Coordinates of all structural nodes
-        self.add_param('node_coord_all', val=np.zeros((self.ns_all, 3)))
+        self.add_input('node_coord_all', val=np.zeros((self.ns_all, 3)))
 
         #Vector containing the thickness of each region
-        self.add_param('t', val=np.zeros(self.tn))
+        self.add_input('t', val=np.zeros(self.tn))
 
         #Vector containing the concentrated masses' values
-        self.add_param('m', val=np.zeros(self.mn))
+        self.add_input('m', val=np.zeros(self.mn))
 
         #Vector containing the cross section (area) of the stringers
-        self.add_param('s', val=np.zeros(self.sn))
+        self.add_input('s', val=np.zeros(self.sn))
 
         #Vector containing first bending inertia of the stringers
-        self.add_param('Ix', val=np.zeros(self.sn))
+        self.add_input('Ix', val=np.zeros(self.sn))
 
         #Vector containing second bending inertia of the stringers
-        self.add_param('Iy', val=np.zeros(self.sn))
+        self.add_input('Iy', val=np.zeros(self.sn))
 
         #Vector containing the cross section (area) of rod elements
-        self.add_param('a', val=np.zeros(self.an))
+        self.add_input('a', val=np.zeros(self.an))
 
         #Young's modulus
-        self.add_param('E', val=1.)
+        self.add_input('E', val=1.)
 
         #Poisson's ratio
-        self.add_param('nu', val=0.3)
+        self.add_input('nu', val=0.3)
 
         #Material density
-        self.add_param('rho_s', val=1.)
+        self.add_input('rho_s', val=1.)
 
         #Load factor (maneuver)
-        self.add_param('n', val=1.)
+        self.add_input('n', val=1.)
 
         #Displacements of the nodes on the outer surface
         self.add_output('u', val=np.zeros((self.ns, 3)))
@@ -115,39 +113,39 @@ class NastranStatic(ExternalCode):
             self.options['command'] = ['nastran.cmd', self.input_filepath.rstrip('.inp')]
 
 
-    def solve_nonlinear(self, params, unknowns, resids):
+    def compute(self, inputs, outputs):
 
         # Generate the input file for Nastran from the input file template and pressure values at the nodes
-        self.create_input_file(params)
+        self.create_input_file(inputs)
 
-        # Parent solve_nonlinear function actually runs the external code
-        super(NastranStatic, self).solve_nonlinear(params, unknowns, resids)
+        # Parent compute function actually runs the external code
+        super(NastranStatic, self).compute(inputs, outputs)
 
         output_data = self.get_output_data()
 
         # Parse the output file from the external code and set the value of u
-        unknowns['u'] = output_data['u']
+        outputs['u'] = output_data['u']
 
         #Parse the output file from the external code and get the Von Mises Stresses
-        unknowns['VMStress'] = output_data['VMStress']
+        outputs['VMStress'] = output_data['VMStress']
 
         #Parse the output file from the external code and get the structural mass
-        unknowns['mass'] = output_data['mass']
+        outputs['mass'] = output_data['mass']
 
-    def create_input_file(self, params):
+    def create_input_file(self, inputs):
 
-        f_node = params['f_node']
-        node_coord_all = params['node_coord_all']
-        t = params['t']
-        m = params['m']
-        s = params['s']
-        Ix = params['Ix']
-        Iy = params['Iy']
-        a = params['a']
-        E = params['E']
-        nu = params['nu']
-        rho_s = params['rho_s']
-        n = params['n']
+        f_node = inputs['f_node']
+        node_coord_all = inputs['node_coord_all']
+        t = inputs['t']
+        m = inputs['m']
+        s = inputs['s']
+        Ix = inputs['Ix']
+        Iy = inputs['Iy']
+        a = inputs['a']
+        E = inputs['E']
+        nu = inputs['nu']
+        rho_s = inputs['rho_s']
+        n = inputs['n']
 
         input_data = {}
 

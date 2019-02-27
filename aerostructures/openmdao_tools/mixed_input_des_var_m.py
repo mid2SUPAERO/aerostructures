@@ -6,17 +6,15 @@ from __future__ import print_function
 
 import numpy as np
 
-from openmdao.api import Component
+from openmdao.api import ExplicitComponent
 
 '''
-Component which combines the mass design variables with the masses of the points not defined as design variables to create a single input vector for the Nastran components
+ExplicitComponent which combines the mass design variables with the masses of the points not defined as design variables to create a single input vector for the Nastran ExplicitComponents
 '''
-class MixedInputDesvarM(Component):
+class MixedInputDesvarM(ExplicitComponent):
 
 
-    def __init__(self, mn, m_desvar_list=[]):
-        super(MixedInputDesvarM, self).__init__()
-
+    def setup(self, mn, m_desvar_list=[]):
         #Number of concentrated masses
         self.mn = mn
 
@@ -24,26 +22,26 @@ class MixedInputDesvarM(Component):
         self.m_desvar_list = m_desvar_list
 
         #Vector containing the baseline or default concentrated masses' values
-        self.add_param('m_indep', val=np.zeros(self.mn))
+        self.add_input('m_indep', val=np.zeros(self.mn))
 
         #Vector containing concentrated masses design variables
-        self.add_param('m_desvar', val=np.zeros(len(m_desvar_list)))
+        self.add_input('m_desvar', val=np.zeros(len(m_desvar_list)))
 
         #Vector containing the concentrated masses' values
         self.add_output('m', val=np.zeros(self.mn))
 
 
-    def solve_nonlinear(self, params, unknowns, resids):
+    def compute(self, inputs, outputs):
 
         m_desvar_list = self.m_desvar_list
 
-        m_indep = params['m_indep']
-        m_desvar = params['m_desvar']
+        m_indep = inputs['m_indep']
+        m_desvar = inputs['m_desvar']
 
         m = m_indep
 
-        #Substitute the design variables to create the thickness and mass vectors that are the inputs of Nastran components
+        #Substitute the design variables to create the thickness and mass vectors that are the inputs of Nastran ExplicitComponents
         for i in range(len(m_desvar_list)):
             m[m_desvar_list[i]] = m_desvar[i]
 
-        unknowns['m'] = m
+        outputs['m'] = m
