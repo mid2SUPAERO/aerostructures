@@ -10,13 +10,16 @@ from openmdao.api import ExplicitComponent
 
 class PlanformGeometry(ExplicitComponent):
 
-    def setup(self, n_sec, b_sec):
+    def __init__(self, n_sec, b_sec):
+        super(PlanformGeometry, self).__init__()
+
         #Total number of sections defining the wing
         self.n_sec = n_sec
 
         #Number of the section of the wing break (1 is the root section)
         self.b_sec = b_sec
 
+    def setup(self):
         #root chord
         self.add_input('cr', val=0.)
 

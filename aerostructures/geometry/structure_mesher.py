@@ -12,9 +12,10 @@ from openmdao.api import ExplicitComponent
 ExplicitComponent which takes the aerodynamic jig mesh coordinates and gives the coordinates of the structural mesh
 '''
 class StructureMesher(ExplicitComponent):
+    
+    def __init__(self, na_unique, node_id, node_id_all):
+        super(StructureMesher, self).__init__()
 
-
-    def setup(self, na_unique, node_id, node_id_all):
         #Identification number of the outer surface nodes
         self.node_id = node_id
 
@@ -30,6 +31,7 @@ class StructureMesher(ExplicitComponent):
         #Number of nodes of the structural mesh (total)
         self.ns_all = len(node_id_all)
 
+    def setup(self):
         #Interpolation matrix G (xs = G xa)
         self.add_input('G', val=np.zeros((self.ns_all, self.na_unique)))
 

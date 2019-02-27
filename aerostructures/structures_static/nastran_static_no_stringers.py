@@ -19,8 +19,9 @@ from aerostructures.number_formatting.is_number import isfloat, isint
 class NastranStatic(ExternalCodeComp):
     template_file = 'nastran_static_template.inp'
 
-
-    def setup(self, node_id, node_id_all, n_stress, tn, mn, case_name):
+    def __init__(self, node_id, node_id_all, n_stress, tn, mn, case_name):
+        super(NastranStatic, self).__init__()
+        
         #Identification number of the outer surface nodes
         self.node_id = node_id
 
@@ -45,6 +46,7 @@ class NastranStatic(ExternalCodeComp):
         #Case name (for file naming)
         self.case_name = case_name
 
+    def setup(self):
         #Forces on the nodes of the outer surface
         self.add_input('f_node', val=np.zeros((self.ns, 3)))
 

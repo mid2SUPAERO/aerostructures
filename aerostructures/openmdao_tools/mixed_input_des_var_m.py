@@ -13,19 +13,21 @@ ExplicitComponent which combines the mass design variables with the masses of th
 '''
 class MixedInputDesvarM(ExplicitComponent):
 
+    def __init__(self, mn, m_desvar_list=[]):
+        super(MixedInputDesvarM, self).__init__()
 
-    def setup(self, mn, m_desvar_list=[]):
         #Number of concentrated masses
         self.mn = mn
 
         #List containing the indices of the thickness vector defined as design variables
         self.m_desvar_list = m_desvar_list
 
+    def setup(self):
         #Vector containing the baseline or default concentrated masses' values
         self.add_input('m_indep', val=np.zeros(self.mn))
 
         #Vector containing concentrated masses design variables
-        self.add_input('m_desvar', val=np.zeros(len(m_desvar_list)))
+        self.add_input('m_desvar', val=np.zeros(len(self.m_desvar_list)))
 
         #Vector containing the concentrated masses' values
         self.add_output('m', val=np.zeros(self.mn))

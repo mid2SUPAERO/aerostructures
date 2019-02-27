@@ -13,8 +13,9 @@ ExplicitComponent which combines the thickness and mass design variables with th
 '''
 class MixedInputDesvar(ExplicitComponent):
 
+    def __init__(self, tn, mn, t_desvar_list=[], m_desvar_list=[]):
+        super(MixedInputDesvar, self).__init__()
 
-    def setup(self, tn, mn, t_desvar_list=[], m_desvar_list=[]):
         #Number of regions where the thicknesses are defined
         self.tn = tn
 
@@ -27,6 +28,7 @@ class MixedInputDesvar(ExplicitComponent):
         #List containing the indices of the thickness vector defined as design variables
         self.m_desvar_list = m_desvar_list
 
+    def setup(self):
         #Vector containing the baseline or default thickness of each region
         self.add_input('t_indep', val=np.zeros(self.tn))
 
@@ -34,10 +36,10 @@ class MixedInputDesvar(ExplicitComponent):
         self.add_input('m_indep', val=np.zeros(self.mn))
 
         #Vector containing thickness design variables
-        self.add_input('t_desvar', val=np.zeros(len(t_desvar_list)))
+        self.add_input('t_desvar', val=np.zeros(len(self.t_desvar_list)))
 
         #Vector containing concentrated masses design variables
-        self.add_input('m_desvar', val=np.zeros(len(m_desvar_list)))
+        self.add_input('m_desvar', val=np.zeros(len(self.m_desvar_list)))
 
         #Vector containing the thickness of each region
         self.add_output('t', val=np.zeros(self.tn))

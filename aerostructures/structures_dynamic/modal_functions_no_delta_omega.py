@@ -11,8 +11,9 @@ from openmdao.api import ExplicitComponent
 #ExplicitComponent which computes scalar functions related to the difference between the reference and actual eigenvectors and eigenvalues
 class ModalFunctions(ExplicitComponent):
 
-
-    def setup(self, node_id_all, N, M, mode_tracking=True):
+    def __init__(self, node_id_all, N, M, mode_tracking=True):
+        super(ModalFunctions, self).__init__()
+        
         #Identification number of all the structural nodes
         self.node_id_all = node_id_all
 
@@ -28,6 +29,7 @@ class ModalFunctions(ExplicitComponent):
         #Mode-tracking option
         self.mode_tracking = mode_tracking
 
+    def setup(self):
         #Numpy array containing the M extracted normal modes
         self.add_input('phi', val=np.zeros((3*self.ns_all, self.M)))
 
@@ -35,10 +37,10 @@ class ModalFunctions(ExplicitComponent):
         self.add_input('phi_ref', val=np.zeros((3*self.ns_all, self.N)))
 
         #Vector containing the extracted eigenvalues
-        self.add_input('eigval', val=np.zeros(M))
+        self.add_input('eigval', val=np.zeros(self.M))
 
         #Vector containing the reference eigenvalues
-        self.add_input('eigval_ref', val=np.zeros(N))
+        self.add_input('eigval_ref', val=np.zeros(self.N))
 
         #Total mass of the scaled model
         self.add_input('mass', val=0.)
@@ -62,7 +64,7 @@ class ModalFunctions(ExplicitComponent):
         self.add_output('ord_phi', val=np.zeros((3*self.ns_all, self.N)))
 
         #Reordered eigenvalues according to MAC values
-        self.add_output('ord_eigval', val=np.zeros(N))
+        self.add_output('ord_eigval', val=np.zeros(self.N))
 
         #MAC matrix trace
         self.add_output('MAC_trace', val=0.)

@@ -13,8 +13,9 @@ from openmdao.api import ExplicitComponent
 #ExplicitComponent which gives the interpolation matrix (H) given the aerodynamics and structural meshes
 class Interpolation(ExplicitComponent):
 
+    def __init__(self, na, ns, **kwargs):
+        super(Interpolation, self).__init__()
 
-    def setup(self, na, ns, **kwargs):
         #Number of points of the aerodynamic grid
         self.na = na
 
@@ -30,6 +31,7 @@ class Interpolation(ExplicitComponent):
         #Norm bias
         self.bias = kwargs.pop('bias', None)
 
+    def setup(self):
         #Aerodynamic grid points coordinates
         self.add_input('apoints_coord', val=np.zeros((self.na, 3)))
 

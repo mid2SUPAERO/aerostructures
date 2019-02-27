@@ -17,8 +17,9 @@ class PanairMesher(ExternalCodeComp):
 
     jig_mesh = 'aero_jig.msh'
 
+    def __init__(self, n_sec, na, na_unique, network_info, ref_airfoil_file):
+        super(PanairMesher, self).__init__()
 
-    def setup(self, n_sec, na, na_unique, network_info, ref_airfoil_file):
         #Number of sections for the geometry definition
         self.n_sec = n_sec
 
@@ -34,22 +35,23 @@ class PanairMesher(ExternalCodeComp):
         #Filename of the reference airfoil file
         self.ref_airfoil_file = ref_airfoil_file
 
+    def setup(self):
         #Coordinates x,y,z of the leading edge for all sections
-        self.add_input('x_le', val=np.zeros(n_sec))
-        self.add_input('y_le', val=np.zeros(n_sec))
-        self.add_input('z_le', val=np.zeros(n_sec))
+        self.add_input('x_le', val=np.zeros(self.n_sec))
+        self.add_input('y_le', val=np.zeros(self.n_sec))
+        self.add_input('z_le', val=np.zeros(self.n_sec))
 
         #Geometric twist for all sections
-        self.add_input('theta', val=np.zeros(n_sec))
+        self.add_input('theta', val=np.zeros(self.n_sec))
 
         #Thickness-to-chord ratio for all sections
-        self.add_input('tc', val=np.zeros(n_sec))
+        self.add_input('tc', val=np.zeros(self.n_sec))
 
         #Maximum camber-to-chord ratio for all sections
-        self.add_input('camc', val=np.zeros(n_sec))
+        self.add_input('camc', val=np.zeros(self.n_sec))
 
         #Chord length for all sections
-        self.add_input('chords', val=np.zeros(n_sec))
+        self.add_input('chords', val=np.zeros(self.n_sec))
 
         #Coordinates of the jig shape aerodynamic points
         self.add_output('apoints_coord', val=np.zeros((self.na, 3)))

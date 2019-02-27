@@ -29,8 +29,9 @@ class Panair(ExplicitComponent):
 
     aux_panin = 'aux_panin.aux'
 
+    def __init__(self, na, network_info, case_name, sym_plane_index=None):
+        super(Panair, self).__init__()
 
-    def setup(self, na, network_info, case_name, sym_plane_index=None):
         #Number of aerodynamic grid points
         self.na = na
 
@@ -43,6 +44,7 @@ class Panair(ExplicitComponent):
         #Case name (for working subdirectory)
         self.case_name = case_name
 
+    def setup(self):
         #Coordinates of the jig shape aerodynamic points (excluding the rot section points)
         self.add_input('apoints_coord', val=np.zeros((self.na, 3)))
 
@@ -309,9 +311,9 @@ class Panair(ExplicitComponent):
                 point_cf_nw[ni][i4] = point_cf_nw[ni][i4] + [cfx/4, cfy/4, cfz/4]
 
         #Get the reference wing area, airspeed and density
-        Sw = self.inputs['Sw']
-        V = self.inputs['V']
-        rho_a = self.inputs['rho_a']
+        Sw = inputs['Sw']
+        V = inputs['V']
+        rho_a = inputs['rho_a']
 
         #Store the force coefficients components as an array and dimensionalize to obtain force values
         f_a = 0.5*rho_a*V**2*Sw*np.vstack(point_cf_nw)

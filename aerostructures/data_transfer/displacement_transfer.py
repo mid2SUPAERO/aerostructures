@@ -14,14 +14,16 @@ the aerodynamic points
 '''
 class DisplacementTransfer(ExplicitComponent):
 
+    def __init__(self, na, ns):
+        super(DisplacementTransfer, self).__init__()
 
-    def setup(self, na, ns):
         #Number of points of the aerodynamic grid
         self.na = na
 
         #Number of nodes of the structural mesh on the outer skin
         self.ns = ns
 
+    def setup(self):
         #Interpolation matrix H (xa = H xs)
         self.add_input('H', val=np.zeros((self.na, self.ns)))
 

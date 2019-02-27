@@ -13,19 +13,21 @@ ExplicitComponent which combines the thickness design variables with the thickne
 '''
 class MixedInputDesvarT(ExplicitComponent):
 
+    def __init__(self, tn, t_desvar_list):
+        super(MixedInputDesvarT, self).__init__()
 
-    def setup(self, tn, t_desvar_list):
         #Number of regions where the thicknesses are defined
         self.tn = tn
 
         #List containing the indices of the thickness vector defined as design variables
         self.t_desvar_list = t_desvar_list
 
+    def setup(self):
         #Vector containing the baseline or default thickness of each region
         self.add_input('t_indep', val=np.zeros(self.tn))
 
         #Vector containing thickness design variables
-        self.add_input('t_desvar', val=np.zeros(len(t_desvar_list)))
+        self.add_input('t_desvar', val=np.zeros(len(self.t_desvar_list)))
 
         #Vector containing the thickness of each region
         self.add_output('t', val=np.zeros(self.tn))

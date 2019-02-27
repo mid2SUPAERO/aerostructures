@@ -15,6 +15,7 @@ class DynamicStructureProblemParams:
 
 
     def __init__(self, node_id_all, N, free_free=False):
+        super(DynamicStructureProblemParams, self).__init__()
 
         #List of all structural nodes
         self.node_id_all = node_id_all

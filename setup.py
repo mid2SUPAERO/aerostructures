@@ -12,7 +12,6 @@ setup(name='aerostructures',
 				'aerostructures.geometry',
 				'aerostructures.number_formatting',
                 'aerostructures.openmdao_tools',
-                    'aerostructures.solvers',
 				'aerostructures.structures_dynamic',
 				'aerostructures.structures_static'],
       install_requires=['openmdao>=2.6.0'])

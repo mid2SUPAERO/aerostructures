@@ -21,8 +21,9 @@ from aerostructures.number_formatting.nastran_pch_reader import PchParser
 class NastranStatic(ExternalCodeComp):
     template_file = 'nastran_static_template.inp'
 
+    def __init__(self, node_id, node_id_all, n_stress, tn, mn, sn, case_name, an=0):
+        super(NastranStatic, self).__init__()
 
-    def setup(self, node_id, node_id_all, n_stress, tn, mn, sn, case_name, an=0):
         #Identification number of the outer surface nodes
         self.node_id = node_id
 
@@ -53,6 +54,7 @@ class NastranStatic(ExternalCodeComp):
         #Case name (for file naming)
         self.case_name = case_name
 
+    def setup(self):
         #Forces on the nodes of the outer surface
         self.add_input('f_node', val=np.zeros((self.ns, 3)))
 

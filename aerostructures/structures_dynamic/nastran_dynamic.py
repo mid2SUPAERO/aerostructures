@@ -23,8 +23,9 @@ class NastranDynamic(ExternalCodeComp):
 
     output_file = 'nastran_dynamic.out'
 
-
-    def setup(self, node_id_all, tn, mn, sn, M, eigr, F1, free_free=False):
+    def __init__(self, node_id_all, tn, mn, sn, M, eigr, F1, free_free=False):
+        super(NastranDynamic, self).__init__()
+        
         #Identification number of all the structural nodes
         self.node_id_all = node_id_all
 
@@ -52,6 +53,7 @@ class NastranDynamic(ExternalCodeComp):
         #Boolean flag indicating modal analysis with free-free conditions
         self.free_free = free_free
 
+    def setup(self):
         #Coordinates of all structural nodes
         self.add_input('node_coord_all', val=np.zeros((self.ns_all, 3)))
 
