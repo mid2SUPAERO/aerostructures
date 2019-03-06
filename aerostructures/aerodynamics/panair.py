@@ -215,22 +215,22 @@ class Panair(ExplicitComponent):
         f.write('PRECISION 6\n')
 
         #Reference chord
-        f.write('CBAR '+str(inputs['c'])+'\n')
+        f.write('CBAR '+str(inputs['c'][0])+'\n')
 
         #Wingspan
-        f.write('SPAN '+str(inputs['b'])+'\n')
+        f.write('SPAN '+str(inputs['b'][0])+'\n')
 
         #Wing reference area
-        f.write('SREF '+str(inputs['Sw'])+'\n')
+        f.write('SREF '+str(inputs['Sw'][0])+'\n')
 
         #Mach number
-        f.write('MACH '+str(inputs['Mach'])+'\n')
+        f.write('MACH '+str(inputs['Mach'][0])+'\n')
 
         #Compressibility angle of attack
-        f.write('ALPC '+str(inputs['alpha'])+'\n')
+        f.write('ALPC '+str(inputs['alpha'][0])+'\n')
 
         #Angle of attack
-        f.write('ALPHA '+str(inputs['alpha'])+'\n')
+        f.write('ALPHA '+str(inputs['alpha'][0])+'\n')
 
         #Indirect boundary condition on an impermeable thick surface
         f.write('BOUN')
