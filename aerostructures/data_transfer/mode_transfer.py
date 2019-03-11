@@ -14,23 +14,26 @@ Component which takes the matrix of normal modes on a grid and gives the matrix 
 
 class ModeTransfer(Component):
 
-    def __init__(self, na, ns):
+    def __init__(self, nr, nm, N):
         super(ModeTransfer, self).__init__()
 
-        # Number of points of the aerodynamic grid
-        self.na = na
+        # Number of points of the source grid
+        self.nr = nr
 
-        # Number of nodes of the structural mesh on the outer skin
-        self.ns = ns
+        # Number of points of the target grid
+        self.nm = nm
+        
+        #Number of modes
+        self.N = N
 
-        # Interpolation matrix H (xa = H xs)
-        self.add_param('H', val=np.zeros((self.na, self.ns)))
+        # Interpolation matrix H (xm = H xr)
+        self.add_param('H', val=np.zeros((self.nm, self.nr)))
 
-        # Nodal displacements of the outer surface
-        self.add_param('u', val=np.zeros((self.ns, 3)))
+        # Matrix of source normal modes
+        self.add_param('Phi_r', val=np.zeros((self.nr, 3)))
 
-        # Displacements of the aerodynamic grid points
-        self.add_output('delta', val=np.zeros((self.na, 3)))
+        # Matrix of target normal modes
+        self.add_output('delta', val=np.zeros((self.nm, 3)))
 
     def solve_nonlinear(self, params, unknowns, resids):
 
