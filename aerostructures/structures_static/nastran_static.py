@@ -157,7 +157,7 @@ class NastranStatic(ExternalCode):
             input_data['Fy'+self.node_id[i]] = print_float_8(f_node[i, 1])
             input_data['Fz'+self.node_id[i]] = print_float_8(f_node[i, 2])
 
-        #Assign each node coordiantes to its corresponding node ID in the input data dictionary
+        #Assign each node coordinates to its corresponding node ID in the input data dictionary
         for i in range(len(node_coord_all)):
             input_data['x'+self.node_id_all[i]] = print_float_8(node_coord_all[i,0])
             input_data['y'+self.node_id_all[i]] = print_float_8(node_coord_all[i,1])
