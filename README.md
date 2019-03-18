@@ -6,10 +6,18 @@ The aerostructures package was initially developed by Joan Mas Colomer during a 
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install aerostructures.
+To install the aerostructures package, you can clone the aerostructures directory using [git](https://git-scm.com/)
 
 ```bash
-pip install aerostructures
+git clone https://github.com/mid2SUPAERO/aerostructures.git
+```
+
+and install it using [pip](https://pip.pypa.io/en/stable/) by specifying the path to the cloned repository.
+
+Otherwise, you can download it in a ZIP file, go to the directory where the file was downloaded and install it using pip
+
+```bash
+pip install aerostructures-OpenMDAO2.zip
 ```
 
 ## License information
