@@ -41,7 +41,7 @@ class Flutter(ExternalCode):
         # Number of points of the target grid
         self.nm = nm
 
-        #Identification number of the target grid nodes
+        # Identification number of the target grid nodes
         self.node_id = node_id
 
         # Vector of section chords
@@ -50,7 +50,7 @@ class Flutter(ExternalCode):
         # Vector of section leading edge positions
         self.add_param('x_le', val=np.zeros(n_sec))
 
-        #Coordinates of target grid
+        # Coordinates of target grid
         self.add_param('xs_m', val=np.zeros((self.nm, 3)))
 
         # Matrix of target normal modes
@@ -98,10 +98,10 @@ class Flutter(ExternalCode):
         Phi_m = params['Phi_m']
 
         # Split Phi_m into modes and put them into a list
-        Phi_m_list = np.split(Phi_m, N)
+        Phi_m_list = np.hsplit(Phi_m, N)
 
         # Flatten the modes
-        Phi_m_flat_list = [mode.flatten for mode in Phi_m_list]
+        Phi_m_flat_list = [mode.flatten() for mode in Phi_m_list]
 
         # Remove zero values from the mode vectors
         Phi_m_flat_list = [mode[np.nonzero(mode)] for mode in Phi_m_flat_list]
@@ -117,7 +117,6 @@ class Flutter(ExternalCode):
         op4 = OP4()
         op4.write_op4('fort.21', {'PHDH': (2, PHDH)},
                       name_order=['PHDH'], is_binary=False)
-                      
 
     def create_input_file(self, params):
 

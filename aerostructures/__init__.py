@@ -33,3 +33,4 @@ from aerostructures.geometry.structure_mesher import StructureMesher
 
 from aerostructures.flutter.flutter_external_code import Flutter
 from aerostructures.flutter.flutter_objective import FlutterObj
+from aerostructures.flutter.caero_planform import CaeroPlanform
