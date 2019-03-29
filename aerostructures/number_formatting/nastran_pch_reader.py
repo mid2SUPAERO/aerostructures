@@ -46,7 +46,7 @@ import cmath
 
 #Modified by Joan Mas Colomer Feb 18, 2019
 CONST_VALID_REQUESTS = ['ACCELERATION', 'DISPLACEMENTS', 'MPCF',
-                        'SPCF', 'ELEMENT FORCES', 'ELEMENT STRAINS', 'ELEMENT STRESSES', 'EIGENVECTOR']
+                        'SPCF', 'ELEMENT FORCES', 'ELEMENT STRAINS', 'ELEMENT STRESSES']
 
 
 def dispatch_parse(output, data_chunks):
@@ -75,12 +75,17 @@ class PchParser:
         self.current_frequency = 0
         self.cur_entity_id = 0
         self.cur_entity_type_id = 0
+        #Modified by Joan Mas Colomer Mar 8 2019
+        self.cur_mode = 0
 
     def __init__(self, filename):
         # define the dictionary
         self.parsed_data = {'FREQUENCY': {}, 'SUBCASES': set()}
         for request in CONST_VALID_REQUESTS:
             self.parsed_data[request] = {}
+
+        #Initialize list of modal requests (#Modified by Joan Mas Colomer Mar 8 2019)
+        self.modal_requests = []
 
         # initiate current frame
         self.reset_current_frame()
@@ -110,6 +115,10 @@ class PchParser:
                     self.cur_subcase = int(line[13:].strip())
                     self.parsed_data['SUBCASES'].add(self.cur_subcase)
 
+                #Modified by Joan Mas Colomer Mar 8 2019
+                if line.startswith('$EIGENVALUE ='):
+                    self.cur_mode = int(line[36:].strip())
+
                 # identify NASTRAN request
                 if line.startswith('$DISPLACEMENTS'):
                     self.cur_request = 'DISPLACEMENTS'
@@ -126,9 +135,11 @@ class PchParser:
                 #Modified by Joan Mas Colomer Jan 30, 2019
                 elif line.startswith('$ELEMENT STRESSES'):
                     self.cur_request = 'ELEMENT STRESSES'
-                #Modified by Joan Mas Colomer Feb 18, 2019
-                elif line.startswith('$EIGENVECTOR'):
-                    self.cur_request = 'EIGENVECTOR'
+                #Modified by Joan Mas Colomer Mar 8, 2019
+                elif line.startswith('$EIGENVALUE') and self.cur_mode > 0:
+                    self.cur_request = 'EIGENVECTOR'+'-'+str(self.cur_mode)
+                    self.parsed_data[self.cur_request] = {}
+                    self.modal_requests.append(self.cur_request)
 
                 # identify output type
                 if line.startswith('$REAL-IMAGINARY OUTPUT'):
@@ -181,7 +192,8 @@ class PchParser:
             self.insert_current_frame()
 
     def validate(self):
-        if self.cur_request not in CONST_VALID_REQUESTS:
+        #Modified by Joan Mas Colomer Mar 8 2019
+        if (self.cur_request not in CONST_VALID_REQUESTS) and (self.cur_request not in self.modal_requests):
             raise NotImplementedError("Request %s is not implemented", self.cur_request)
 
         if self.cur_request == 'ELEMENT FORCES' and self.cur_entity_type_id not in [12, 102]:
@@ -253,9 +265,13 @@ class PchParser:
     def get_stresses(self, subcase):
         return self.__get_data_per_request('ELEMENT STRESSES', subcase)
 
-    #Modified by Joan Mas Colomer Feb 18, 2019
+    #Modified by Joan Mas Colomer Mar 8, 2019
     def get_eigenvectors(self, subcase):
-        return self.__get_data_per_request('EIGENVECTOR', subcase)
+        eigenvectors = {}
+        for request in self.modal_requests:
+            eigenvectors[request] = self.__get_data_per_request(
+                request, subcase)
+        return eigenvectors
 
     def get_frequencies(self, subcase):
         return sorted(self.parsed_data['FREQUENCY'][subcase])

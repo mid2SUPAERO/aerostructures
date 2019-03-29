@@ -177,7 +177,7 @@ class PanairMesher(ExternalCodeComp):
 
         #Define cols and rows from network_info and sec_num
         rows = network_info[0][1] - 1
-        cols = (network_info[0][2] - 1)/(sec_num - 1)
+        cols = (network_info[0][2] - 1)//(sec_num - 1)
 
         self.rows = rows
         self.cols = cols
