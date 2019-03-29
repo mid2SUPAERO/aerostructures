@@ -12,8 +12,7 @@ class StaticStructureProblemParams:
 
 
     def __init__(self, node_id, node_id_all):
-        super(StaticStructureProblemParams, self).__init__()
-
+        
         #List of structural nodes on the outer surface
         self.node_id = node_id
 
