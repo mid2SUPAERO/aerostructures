@@ -22,7 +22,7 @@ class NastranStatic(ExternalCode):
     template_file = 'nastran_static_template.inp'
 
 
-    def __init__(self, node_id, node_id_all, n_stress, tn, mn, sn, case_name, an=0):
+    def __init__(self, node_id, node_id_all, n_stress, tn, mn, sn, an, case_name):
         super(NastranStatic, self).__init__()
 
         #Identification number of the outer surface nodes

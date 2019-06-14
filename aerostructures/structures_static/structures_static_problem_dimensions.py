@@ -39,6 +39,12 @@ class StaticStructureProblemDimensions:
 
         #Number of Von Mises stress outputs
         self.n_stress = self.structure_dimensions['n_stress']
+        
+        #Number of nodes in the horizontal direction of each section
+        self.Ln = self.structure_dimensions['Ln']
+        
+        #Number of nodes in the vertical direction of each section
+        self.Vn = self.structure_dimensions['Vn']
 
 
     #Function that returns the list of node IDs belonging to the outer surface
@@ -51,17 +57,25 @@ class StaticStructureProblemDimensions:
         sn = 0
         an = 0
         n_stress = 0
+        Ln = 0
+        Vn = 0
 
         #Read the list of nodes belonging to the outer surface from the template file
         with open(self.template_file) as f:
             lines = f.readlines()
 
             outer_node_begin = lines.index('$List of nodes belonging to the outer skin\n')
+            mesh_para_line = lines.index('$Case parameters\n')
 
             for i in range(len(lines)):
                 #Store nodes belonging to the outer skin
                 if i > outer_node_begin and lines[i][0] == '$':
                     node_id.append(lines[i].strip().lstrip('$'))
+                    
+                elif i == mesh_para_line:
+                    line = lines[i+1].split(',')
+                    Ln = float(line[2])
+                    Vn = float(line[4])
 
                 else:
                     #Detect Nastran free field (comma separated) or small field (8 character)
@@ -115,5 +129,7 @@ class StaticStructureProblemDimensions:
         structure_dimensions['sn'] = sn
         structure_dimensions['an'] = an
         structure_dimensions['n_stress'] = n_stress
-
+        structure_dimensions['Ln'] = Ln
+        structure_dimensions['Vn'] = Vn
+        
         return structure_dimensions

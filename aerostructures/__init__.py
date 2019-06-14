@@ -30,6 +30,7 @@ from aerostructures.openmdao_tools.mixed_input_des_var_m import MixedInputDesvar
 from aerostructures.geometry.panair_mesher import PanairMesher
 from aerostructures.geometry.planform_geometry import PlanformGeometry
 from aerostructures.geometry.structure_mesher import StructureMesher
+from aerostructures.geometry.geometrical_properties import GeometricalProperties
 
 from aerostructures.flutter.flutter_external_code import Flutter
 from aerostructures.flutter.flutter_objective import FlutterObj
