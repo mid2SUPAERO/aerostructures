@@ -63,10 +63,16 @@ class StaticStructureProblemDimensions:
         #Read the list of nodes belonging to the outer surface from the template file
         with open(self.template_file) as f:
             lines = f.readlines()
-
+            
+            try:
+                mesh_para_line = lines.index('$Case parameters\n')
+            except ValueError:
+                mesh_para_line = -1
+                Ln = 24
+                Vn = 5
+            
             outer_node_begin = lines.index('$List of nodes belonging to the outer skin\n')
-            mesh_para_line = lines.index('$Case parameters\n')
-
+            
             for i in range(len(lines)):
                 #Store nodes belonging to the outer skin
                 if i > outer_node_begin and lines[i][0] == '$':
