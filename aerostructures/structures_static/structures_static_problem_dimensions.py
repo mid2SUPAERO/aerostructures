@@ -112,7 +112,7 @@ class StaticStructureProblemDimensions:
                     #Store number of stress outputs (2 stress values per surface, 1 stress value per rod)
                     elif line[0] == 'CTRIA3' or line[0] == 'CQUAD4':
                         n_stress += 2
-                    elif line[0] == 'CROD':
+                    elif line[0] == 'CROD' or line[0] == 'CBAR':
                         n_stress += 1
 
         #Order nodes according to their ID and remove duplicates

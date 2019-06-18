@@ -249,6 +249,10 @@ class NastranStatic(ExternalCode):
             #Write rod axial stresses into a list
             elif len(elm_stress[elm]) == 4:
                 rod_stress.append(elm_stress[elm][0])
+                
+            #Write bar axial stresses into a list
+            elif len(elm_stress[elm]) == 13:
+                rod_stress.append(elm_stress[elm][4])
 
         #Compute the Von Mises Stresses on the structure
         VM = []
