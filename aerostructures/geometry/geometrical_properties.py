@@ -82,6 +82,10 @@ class GeometricalProperties:
                 s[i] = self.s_0_tot[i]
                 Ix[i] = self.Ix_0_tot[i]
                 Iy[i] = self.Iy_0_tot[i]
+            elif i == 6 or i == 7:
+                s[i] = self.s_0_tot[i]/(self.Ln)
+                Ix[i] = self.Ix_0_tot[i]/(self.Ln)
+                Iy[i] = self.Iy_0_tot[i]/(self.Ln)                
             else:
                 s[i] = self.s_0_tot[i]/(self.Ln-2)
                 Ix[i] = self.Ix_0_tot[i]/(self.Ln-2)
