@@ -26,7 +26,7 @@ class Flutter(ExternalCode):
 
     output_file = 'nastran_flutter.f06'
 
-    def __init__(self, N, F, n_sec, nm, node_id):
+    def __init__(self, N, F, n_sec, nm, node_id_all):
         super(Flutter, self).__init__()
 
         # Number of normal modes
@@ -42,7 +42,7 @@ class Flutter(ExternalCode):
         self.nm = nm
 
         # Identification number of the target grid nodes
-        self.node_id = node_id
+        self.node_id_all = node_id_all
 
         # Vector of section chords
         self.add_param('c', val=np.zeros(n_sec))
@@ -125,7 +125,7 @@ class Flutter(ExternalCode):
             os.remove(filename)
 
         n_sec = self.n_sec
-        node_id = self.node_id
+        node_id_all = self.node_id_all
 
         c = params['c']
         x_le = params['x_le']
@@ -138,10 +138,10 @@ class Flutter(ExternalCode):
             input_data['c'+str(i+1)] = print_float_8(c[i])
             input_data['x_le'+str(i+1)] = print_float_8(x_le[i])
 
-        for i in range(len(node_id)):
-            input_data['x'+node_id[i]] = print_float_8(xs_m[i, 0])
-            input_data['y'+node_id[i]] = print_float_8(xs_m[i, 1])
-            input_data['z'+node_id[i]] = print_float_8(xs_m[i, 2])
+        for i in range(len(node_id_all)):
+            input_data['x'+node_id_all[i]] = print_float_8(xs_m[i, 0])
+            input_data['y'+node_id_all[i]] = print_float_8(xs_m[i, 1])
+            input_data['z'+node_id_all[i]] = print_float_8(xs_m[i, 2])
 
         # Read the input file template
         f = open(self.template_file, 'r')

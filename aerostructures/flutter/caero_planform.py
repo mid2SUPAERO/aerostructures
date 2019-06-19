@@ -49,11 +49,11 @@ class CaeroPlanform(Component):
         xr = params['xr']
         
         c = np.zeros(self.n_sec)
-        c[0] = cr
+        c[0] = cr - (cr-cb)/y[1]*y[0]
         c[1] = cb
         c[2] = cb - (cb-ct)/(y[3]-y[1])*(y[2]-y[1])
         c[3] = ct
         
         unknowns['c'] = c
         
-        unknowns['x_le'] = xr*np.ones(n_sec) + np.tan(np.radians(sweep))*(y-y[0]*np.ones(n_sec))
+        unknowns['x_le'] = xr*np.ones(n_sec) + np.tan(np.radians(sweep))*y
