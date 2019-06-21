@@ -24,7 +24,7 @@ class NastranDynamic(ExternalCode):
     output_file = 'nastran_dynamic.out'
 
 
-    def __init__(self, node_id_all, tn, mn, sn, M, eigr, F1, free_free=False):
+    def __init__(self, node_id_all, tn, mn, sn, an, M, eigr, F1, free_free=False):
         super(NastranDynamic, self).__init__()
 
         #Identification number of all the structural nodes
@@ -41,6 +41,9 @@ class NastranDynamic(ExternalCode):
 
         #Number of stringer sections
         self.sn = sn
+        
+        #Number of rod sections
+        self.an = an
 
         #Number of normal modes to extract
         self.M = M
@@ -66,6 +69,9 @@ class NastranDynamic(ExternalCode):
         #Vector containing the cross section (area) of the stringers
         self.add_param('s', val=np.zeros(self.sn))
 
+        #Vector containing the cross section (area) of rod elements
+        self.add_param('a', val=np.zeros(self.an))
+        
         #Vector containing first bending inertia of the stringers
         self.add_param('Ix', val=np.zeros(self.sn))
 
@@ -110,12 +116,14 @@ class NastranDynamic(ExternalCode):
 
         # Generate the input file for Nastran from the input file template and the design variables
         self.create_input_file(params)
-
+        
         # Parent solve_nonlinear function actually runs the external code
         super(NastranDynamic, self).solve_nonlinear(params, unknowns, resids)
-
+        
         output_data = self.get_output_data()
-
+        #print(self.M)
+        #print(len(unknowns['eigval']))
+        #print(output_data['eigval'][1])
         # Parse the output file from the external code and set the value of the eigenvectorss
         unknowns['phi'] = output_data['phi']
 
@@ -135,6 +143,7 @@ class NastranDynamic(ExternalCode):
         t = params['t']
         m = params['m']
         s = params['s']
+        a = params['a']
         Ix = params['Ix']
         Iy = params['Iy']
         E = params['E']
@@ -171,6 +180,10 @@ class NastranDynamic(ExternalCode):
             input_data['s'+str(i+1)] = print_float_8(s[i])
             input_data['Ix'+str(i+1)] = print_float_8(Ix[i])
             input_data['Iy'+str(i+1)] = print_float_8(Iy[i])
+            
+        #Assign each rod section value to its corresponding ID in the input data dictionary
+        for i in range(len(a)):
+            input_data['a'+str(i+1)] = print_float_8(a[i])
 
         #Assign the Young's modulus to its input data dictionary key
         input_data['E'] = print_float_8(E)
