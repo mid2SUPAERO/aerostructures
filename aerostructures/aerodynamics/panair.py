@@ -249,7 +249,11 @@ class Panair(Component):
         #Execute Panin to generate the Panair input file
         #First, change working directory to case_name subdirectory
         os.chdir(case_name)
-        p = Popen('panin.exe', stdin=PIPE, encoding='utf8')
+        #Check Python version for Popen arguments
+        if (sys.version_info > (3, 0)):
+            p = Popen('panin.exe', stdin=PIPE, encoding='utf8')
+        else:
+            p = Popen('panin.exe', stdin=PIPE)
         os.chdir('..')
         p.communicate(self.aux_panin)
         p.wait()
