@@ -12,6 +12,7 @@ from aerostructures.aerodynamics.aerodynamics_problem_dimensions import AeroProb
 from aerostructures.aerodynamics.aerodynamics_problem_params import AeroProblemParams
 from aerostructures.aerodynamics.aerodynamics_ref_coord import AeroRefCoord
 from aerostructures.aerodynamics.panair import Panair
+from aerostructures.aerodynamics.wave_drag import WaveDrag
 
 from aerostructures.structures_static.nastran_static import NastranStatic
 from aerostructures.structures_static.structures_static_problem_dimensions import StaticStructureProblemDimensions
@@ -30,6 +31,7 @@ from aerostructures.openmdao_tools.mixed_input_des_var_m import MixedInputDesvar
 from aerostructures.geometry.panair_mesher import PanairMesher
 from aerostructures.geometry.planform_geometry import PlanformGeometry
 from aerostructures.geometry.structure_mesher import StructureMesher
+from aerostructures.geometry.wing_segment_props import WingSegmentProps
 
 from aerostructures.flutter.flutter_external_code import Flutter
 from aerostructures.flutter.flutter_objective import FlutterObj

@@ -102,14 +102,14 @@ class Panair(Component):
             p = Popen('clean502.bat')
         else:
             p = Popen('clean502.sh')
-        os.chdir('..')
         p.wait()
+        os.chdir('..')
 
         # Run Panair
         os.chdir(case_name)
         p = Popen('panair '+self.input_filepath)
-        os.chdir('..')
         p.wait()
+        os.chdir('..')
 
         #Get output data from the Panair output file
         output_data = self.get_output_data()
