@@ -76,7 +76,7 @@ class GeometricalProperties:
         
         for i in range(len(a)):
             a[i] = self.l_0[i]*t[i+6]
-            
+                        
         for i in range(len(s)):
             if i == 2 or i == 3 or i == 5:
                 s[i] = self.s_0_tot[i]

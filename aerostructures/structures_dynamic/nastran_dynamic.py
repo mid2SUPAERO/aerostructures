@@ -323,5 +323,5 @@ class NastranDynamic(ExternalCode):
         output_data['eigval'] = eigval
         output_data['gen_mass'] = gen_mass
         output_data['mass'] = mass
-
+        
         return output_data
