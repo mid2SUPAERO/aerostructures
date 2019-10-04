@@ -29,27 +29,13 @@ class Panair(Component):
     aux_panin = 'aux_panin.aux'
 
 
-    def __init__(self, na, network_info, case_name, fidelity, na_h=None, network_info_h=None, it_l=None, sym_plane_index=None):
+    def __init__(self, na, network_info, case_name, network_info_h=None, sym_plane_index=None):
         super(Panair, self).__init__()
                
-          
+         
         #Number of aerodynamic grid points
         self.na = na
-        
-        #Fidelity level
-        self.fidelity = fidelity
-
-        #Fidelity selection 
-        if self.fidelity == 'high':
-            self.aero_template = 'aero_template.wgs'
-        elif self.fidelity == 'low':
-            self.aero_template = 'aero_template_lo.wgs'
-        elif self.fidelity == 'mult':
-            self.aero_template = 'aero_template_lo.wgs'
-            self.na_h = na_h
-            self.network_info_h = network_info_h
-            self.it_l = it_l
-            
+                          
         #List containing information about each network (network ID, shape and number of points and panels of preceeding networks)
         self.network_info = network_info
 
@@ -124,14 +110,7 @@ class Panair(Component):
         p = Popen('panair '+self.input_filepath)
         p.wait()
         os.chdir('..')
-        
-        if self.fidelity == 'mult': 
-            self.it_l -= 1
-            print(self.it_l)
-            if self.it_l == 0:
-                self.fidelity = 'high'
-                print('Fidelity change')
-                
+                               
         #Get output data from the Panair output file
         output_data = self.get_output_data()
 
