@@ -29,9 +29,11 @@ class Panair(Component):
     aux_panin = 'aux_panin.aux'
 
 
-    def __init__(self, na, network_info, case_name, network_info_h=None, sym_plane_index=None):
+    def __init__(self, na, network_info, case_name, aero_template, network_info_h=None, sym_plane_index=None):
         super(Panair, self).__init__()
-               
+        
+        #Aerodynamic template file 
+        self.aero_template = aero_template        
          
         #Number of aerodynamic grid points
         self.na = na
@@ -134,7 +136,7 @@ class Panair(Component):
         #Compute the coordinates of the displaced points
         jig_coord = params['apoints_coord']
         new_coord = jig_coord + params['delta']
-
+        
         #Enforce symmetry condition, if existing
         if sym_plane_index is not None:
             j = sym_plane_index - 1

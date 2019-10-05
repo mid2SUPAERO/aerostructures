@@ -10,22 +10,25 @@ from aerostructures.number_formatting.is_number import isfloat
 
 class AeroProblemParams:
         
-    def __init__(self):
+    def __init__(self, aero_template):
+        
+        #Jig shape geometry
+        self.jig_shape = aero_template
+
         #Dictionary containing the structural parameters
         self.aero_params = self.get_aero_params()
+
         #Aerodynamic mesh points coordinates
         self.apoints_coord = self.aero_params['apoints_coord']
 
         #Unique aerodynamic mesh points coordinates
         self.apoints_coord_unique = self.aero_params['apoints_coord_unique']
-
-
+        
     #Function that returns the aerodynamic points coordinates
     def get_aero_params(self):
 
         apoints_coord = []
-        #Jig shape geometry
-        self.jig_shape = input('Enter the name of the .wgs file you want to use as template for this instance, please\n')
+        
         #Write the aerodynamic grid points coordinates into a list (excluding the root section)
         with open(self.jig_shape) as f:
             lines = f.readlines()
@@ -48,7 +51,7 @@ class AeroProblemParams:
         aero_params = {}
         aero_params['apoints_coord'] = apoints_coord
         aero_params['apoints_coord_unique'] = apoints_coord_unique
-
+        
         return aero_params
     
     

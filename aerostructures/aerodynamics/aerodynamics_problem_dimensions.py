@@ -10,7 +10,10 @@ from aerostructures.number_formatting.is_number import isfloat, isint
 
 class AeroProblemDimensions:
        
-    def __init__(self):
+    def __init__(self, aero_template):
+        
+        #Geometry file
+        self.aero_template = aero_template
         
         #Dictionary containing the aerodynamic problem dimensions
         self.aero_dimensions = self.get_aero_dimensions()
@@ -24,12 +27,13 @@ class AeroProblemDimensions:
         #Aerodynamic mesh network information list
         self.network_info = self.aero_dimensions['network_info']
         
+        
+        
     def get_aero_dimensions(self):
 
         apoints_coord = []
         network_info = []
-        #Jig shape geometry
-        self.aero_template = input('Enter the name of the .wgs file you want to use as template for this instance\n')
+        
         #Write the aerodynamic grid points coordinates into a list
         with open(self.aero_template) as f:
             lines = f.readlines()
@@ -65,6 +69,7 @@ class AeroProblemDimensions:
         aero_dimensions['na'] = na
         aero_dimensions['na_unique'] = na_unique
         aero_dimensions['network_info'] = network_info
+        
 
         return aero_dimensions
         
