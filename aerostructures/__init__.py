@@ -3,6 +3,7 @@ from aerostructures.number_formatting.is_number import isint, isfloat
 from aerostructures.number_formatting.nastran_pch_reader import PchParser
 
 from aerostructures.data_transfer.displacement_transfer import DisplacementTransfer
+from aerostructures.data_transfer.filter import Filter
 from aerostructures.data_transfer.interpolation import Interpolation
 from aerostructures.data_transfer.load_transfer import LoadTransfer
 from aerostructures.data_transfer.rbf_poly_bias import Rbf_poly_bias
