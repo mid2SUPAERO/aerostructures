@@ -46,11 +46,11 @@ class Filter(Component):
         if self.aux == 0:
             unknowns['us'] = ul
             self.aux = 1
-            print('Se envió el vector ul')
+            
          
         else:
             unknowns['us'] = u
-            print('Se envió el vector u')
+            
             
 
         
