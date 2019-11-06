@@ -40,7 +40,7 @@ class Interpolation(Component):
 
         #Interpolation matrix H (xa = H xs)
         self.add_output('H', val=np.zeros((self.na, self.ns)))
-
+       
 
     def solve_nonlinear(self, params, unknowns, resids):
 
@@ -53,3 +53,4 @@ class Interpolation(Component):
 
         #Set the interpolation matrix (H) as an output
         unknowns['H'] = inter.H
+        

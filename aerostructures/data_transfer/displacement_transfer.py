@@ -37,7 +37,7 @@ class DisplacementTransfer(Component):
     def solve_nonlinear(self, params, unknowns, resids):
 
         u = params['u']
-
+        
         H = params['H']
 
         #Apply the interpolation matrix to obtain the aerodynamic points displacements

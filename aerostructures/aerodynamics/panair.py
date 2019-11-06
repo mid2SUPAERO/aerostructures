@@ -136,7 +136,7 @@ class Panair(Component):
         #Compute the coordinates of the displaced points
         jig_coord = params['apoints_coord']
         new_coord = jig_coord + params['delta']
-        
+                
         #Enforce symmetry condition, if existing
         if sym_plane_index is not None:
             j = sym_plane_index - 1

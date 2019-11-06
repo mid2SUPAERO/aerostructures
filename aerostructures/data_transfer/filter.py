@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 """
+@author: © Gilberto Ruiz Jiménez
+
 """
 
 from __future__ import print_function
@@ -9,8 +11,8 @@ import numpy as np
 from openmdao.api import Component
 
 '''
-Component which takes the nodal displacements and gives the displacements of
-the aerodynamic points
+Component that imports the displacement field from the Lo-Fi level to the Hi-Fi level when needed, and if not
+keeps the displacement field from the previous iteration
 '''
 class Filter(Component):
 
@@ -30,8 +32,13 @@ class Filter(Component):
         #Displacements after decision
         self.add_output('us', val=np.zeros((self.ns, 3)))
         
-        #Aux variable
-        if fidelity == 'high':
+        #Aux variables
+        self.ul_old = np.zeros((self.ns,3))
+        
+        #Fidelity level
+        self.fidelity = fidelity
+        
+        if self.fidelity == 'high':
             self.aux = 1
         else:
             self.aux = 0
@@ -39,17 +46,26 @@ class Filter(Component):
 
     def solve_nonlinear(self, params, unknowns, resids):
         u = params['u']
-        #print(u)
         ul = params['ul']
-        #print(ul)
-        #if (u == np.zeros((len(u),3))).all() is True:
+                
+        #Changes the value of aux when a new iteration of the optimizer started
+        if self.aux == 1 and np.linalg.norm(self.ul_old) != np.linalg.norm(ul):
+            if self.fidelity == 'high':
+                self.aux = 1
+            else:
+                self.aux = 0
+                
+        #Changes fidelities if needed
         if self.aux == 0:
             unknowns['us'] = ul
+            self.ul_old = np.copy(ul)  
             self.aux = 1
+            print('::::::::Fidelity changed, displacement field imported from Lo-Fi::::::::')
             
-         
+        #Keeps current displacement field during the same MDA loop
         else:
             unknowns['us'] = u
+            print('::::::::Hi-Fi displacement field kept from previous Hi-Fi iteration::::::::')
             
             
 
