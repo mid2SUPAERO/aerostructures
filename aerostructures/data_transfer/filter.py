@@ -49,7 +49,7 @@ class Filter(Component):
         ul = params['ul']
                 
         #Changes the value of aux when a new iteration of the optimizer started
-        if self.aux == 1 and np.linalg.norm(self.ul_old) != np.linalg.norm(ul):
+        if self.aux == 1 and np.array_equal(self.ul_old, ul) == False: 
             if self.fidelity == 'high':
                 self.aux = 1
             else:
