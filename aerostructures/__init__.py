@@ -8,11 +8,13 @@ from aerostructures.data_transfer.interpolation import Interpolation
 from aerostructures.data_transfer.load_transfer import LoadTransfer
 from aerostructures.data_transfer.rbf_poly_bias import Rbf_poly_bias
 from aerostructures.data_transfer.mode_transfer import ModeTransfer
+from aerostructures.data_transfer.aero_surf_transfer import AeroSurfTransfer
 
 from aerostructures.aerodynamics.aerodynamics_problem_dimensions import AeroProblemDimensions
 from aerostructures.aerodynamics.aerodynamics_problem_params import AeroProblemParams
 from aerostructures.aerodynamics.aerodynamics_ref_coord import AeroRefCoord
 from aerostructures.aerodynamics.panair import Panair
+from aerostructures.aerodynamics.adflow_component import ADflow
 from aerostructures.aerodynamics.wave_drag import WaveDrag
 
 from aerostructures.structures_static.nastran_static import NastranStatic
@@ -33,6 +35,8 @@ from aerostructures.geometry.panair_mesher import PanairMesher
 from aerostructures.geometry.planform_geometry import PlanformGeometry
 from aerostructures.geometry.structure_mesher import StructureMesher
 from aerostructures.geometry.wing_segment_props import WingSegmentProps
+from aerostructures.geometry.aero_hifi_mesher import AeroHiFiMesher
+from aerostructures.geometry.surface_generator import SurfaceGenerator
 
 from aerostructures.flutter.flutter_external_code import Flutter
 from aerostructures.flutter.flutter_objective import FlutterObj
