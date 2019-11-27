@@ -18,7 +18,7 @@ class PanairMesher(ExternalCode):
     jig_mesh = 'aero_jig.msh'
 
 
-    def __init__(self, n_sec, na, na_unique, network_info, ref_airfoil_file):
+    def __init__(self, n_sec, na, na_unique, network_info, ref_airfoil_files):
         super(PanairMesher, self).__init__()
 
         #Number of sections for the geometry definition
@@ -33,8 +33,8 @@ class PanairMesher(ExternalCode):
         #List containing information about each network (network ID, shape and number of points and panels of preceeding networks)
         self.network_info = network_info
 
-        #Filename of the reference airfoil file
-        self.ref_airfoil_file = ref_airfoil_file
+        #Filenames of the reference airfoil files
+        self.ref_airfoil_files = ref_airfoil_files
 
         #Coordinates x,y,z of the leading edge for all sections
         self.add_param('x_le', val=np.zeros(n_sec))
@@ -76,10 +76,10 @@ class PanairMesher(ExternalCode):
     def solve_nonlinear(self, params, unknowns, resids):
 
         #Get the coordinates, tc, and camc of the reference airfoil file
-        ref_airfoil = self.read_reference_airfoil()
+        ref_airfoils = self.read_reference_airfoils()
 
         #Generate the gmsh script defining the geometry
-        self.create_gmsh_script(params, ref_airfoil)
+        self.create_gmsh_script(params, ref_airfoils)
 
         # Parent solve_nonlinear function actually runs the external code
         super(PanairMesher, self).solve_nonlinear(params, unknowns, resids)
@@ -94,65 +94,70 @@ class PanairMesher(ExternalCode):
         unknowns['apoints_coord_unique'] = aero_points['apoints_coord_unique']
 
 
-    def read_reference_airfoil(self):
+    def read_reference_airfoils(self):
 
-        ref_airfoil_file = self.ref_airfoil_file
+        ref_airfoil_files = self.ref_airfoil_files
+        ref_airfoils = {}
 
-        #Coordinates of the reference airfoil's upper surface
-        upper_coord = []
+        for ref_airfoil_file in set(ref_airfoil_files):
+            #Coordinates of the reference airfoil's upper surface
+            upper_coord = []
 
-        #Coordinates of the reference airfoil's lower surface
-        lower_coord = []
+            #Coordinates of the reference airfoil's lower surface
+            lower_coord = []
 
-        with open(ref_airfoil_file) as f:
-            lines = f.readlines()
-            lines = [i.split() for i in lines]
+            with open(ref_airfoil_file) as f:
+                lines = f.readlines()
+                lines = [i.split() for i in lines]
 
-            coord = False
-            for line in lines:
-                if len (line) == 4:
-                    if line[0] == 'XU': coord = True
-                if coord == True and len (line) == 4 and line[0] != 'XU':
-                    upper_coord.append((float(line[0]), float(line[1])))
-                    lower_coord.append((float(line[2]), float(line[3])))
+                coord = False
+                for line in lines:
+                    if len (line) == 4:
+                        if line[0] == 'XU': coord = True
+                    if coord == True and len (line) == 4 and line[0] != 'XU':
+                        upper_coord.append((float(line[0]), float(line[1])))
+                        lower_coord.append((float(line[2]), float(line[3])))
 
-        #Compute tc and camc of the reference airfoil
-        #First, compute thickness and camber along the chord
-        t_ref = [upper_coord[i][1] - lower_coord[i][1] for i in range(len(upper_coord))]
-        camber_ref = [(upper_coord[i][1] + lower_coord[i][1])/2 for i in range(len(upper_coord))]
+            #Compute tc and camc of the reference airfoil
+            #First, compute thickness and camber along the chord
+            t_ref = [upper_coord[i][1] - lower_coord[i][1] for i in range(len(upper_coord))]
+            camber_ref = [(upper_coord[i][1] + lower_coord[i][1])/2 for i in range(len(upper_coord))]
 
-        #Convert to numpy array
-        t_ref = np.asarray(t_ref)
-        camber_ref = np.asarray(camber_ref)
+            #Convert to numpy array
+            t_ref = np.asarray(t_ref)
+            camber_ref = np.asarray(camber_ref)
 
-        #Compute chord of the reference airfoil
-        c_ref = upper_coord[-1][0] - upper_coord[0][0]
+            #Compute chord of the reference airfoil
+            c_ref = upper_coord[-1][0] - upper_coord[0][0]
 
-        #Compute t/c and camber/c for the reference airfoil
-        tc_ref = t_ref.max()/c_ref
-        camc_ref = camber_ref.max()/c_ref
-        #Modified by JMC 15/08/2018: In case of symmetrical airfoil, set camc_ref to arbitrary value to avoid dividing by zero
-        if camc_ref == 0.: camc_ref = 1.
+            #Compute t/c and camber/c for the reference airfoil
+            tc_ref = t_ref.max()/c_ref
+            camc_ref = camber_ref.max()/c_ref
+            #Modified by JMC 15/08/2018: In case of symmetrical airfoil, set camc_ref to arbitrary value to avoid dividing by zero
+            if camc_ref == 0.: camc_ref = 1.
 
-        #Convert reference airfoil coordinates to numpy array and normalize using reference chord
-        upper_coord = np.asarray(upper_coord)/c_ref
-        lower_coord = np.asarray(lower_coord)/c_ref
+            #Convert reference airfoil coordinates to numpy array and normalize using reference chord
+            upper_coord = np.asarray(upper_coord)/c_ref
+            lower_coord = np.asarray(lower_coord)/c_ref
 
-        ref_airfoil = {}
+            ref_airfoil = {}
 
-        ref_airfoil['upper_coord'] = upper_coord
-        ref_airfoil['lower_coord'] = lower_coord
-        ref_airfoil['t_ref'] = t_ref
-        ref_airfoil['camber_ref'] = camber_ref
-        ref_airfoil['tc_ref'] = tc_ref
-        ref_airfoil['camc_ref'] = camc_ref
+            ref_airfoil['upper_coord'] = upper_coord
+            ref_airfoil['lower_coord'] = lower_coord
+            ref_airfoil['t_ref'] = t_ref
+            ref_airfoil['camber_ref'] = camber_ref
+            ref_airfoil['tc_ref'] = tc_ref
+            ref_airfoil['camc_ref'] = camc_ref
 
-        return ref_airfoil
+            ref_airfoils[ref_airfoil_file] = ref_airfoil
+        
+        return ref_airfoils
 
-    def create_gmsh_script(self, params, ref_airfoil):
+    def create_gmsh_script(self, params, ref_airfoils):
 
         geo_script = self.geo_script
         network_info = self.network_info
+        ref_airfoil_files = self.ref_airfoil_files
 
         xle = params['x_le']
         yle = params['y_le']
@@ -167,18 +172,9 @@ class PanairMesher(ExternalCode):
         theta[1] = 4.545042708
         tc[0] = tc[1]
 
-        tc_ref = ref_airfoil['tc_ref']
-        camc_ref = ref_airfoil['camc_ref']
-        upper_coord = ref_airfoil['upper_coord']
-        lower_coord = ref_airfoil['lower_coord']
-        half_thick_ref = ref_airfoil['t_ref']/2
-        camber_ref = ref_airfoil['camber_ref']
 
         #Define section number
         sec_num = self.n_sec
-
-        #Define number of points along the airfoil
-        foil_num = len(upper_coord)
 
         #Define cols and rows from network_info and sec_num
         rows = network_info[0][1] - 1
@@ -192,6 +188,17 @@ class PanairMesher(ExternalCode):
 
         with open(geo_script,'w') as f:
             for i in range(sec_num):
+
+                tc_ref = ref_airfoils[ref_airfoil_files[i]]['tc_ref']
+                camc_ref = ref_airfoils[ref_airfoil_files[i]]['camc_ref']
+                upper_coord = ref_airfoils[ref_airfoil_files[i]]['upper_coord']
+                lower_coord = ref_airfoils[ref_airfoil_files[i]]['lower_coord']
+                half_thick_ref = ref_airfoils[ref_airfoil_files[i]]['t_ref']/2
+                camber_ref = ref_airfoils[ref_airfoil_files[i]]['camber_ref']
+
+                #Define number of points along the airfoil
+                foil_num = len(upper_coord)
+
                 #Write upper surface coordinates
                 for j in range(foil_num):
                     if (j == 0 or j == foil_num - 1):
