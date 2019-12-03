@@ -167,12 +167,9 @@ class PanairMesher(ExternalCode):
         tc = params['tc']
         camc = params['camc']
 
-        #Override twist of the root section and set it to zero
-        theta[0] = 6.691738003
-        theta[1] = 4.545042708
-        tc[0] = tc[1]
-
-
+        #Override twist of the root section and set it to zero to avoid conflict with AoA
+        theta[0] = 0.
+        
         #Define section number
         sec_num = self.n_sec
 
