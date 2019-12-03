@@ -32,6 +32,7 @@ from aerostructures.geometry.panair_mesher import PanairMesher
 from aerostructures.geometry.planform_geometry import PlanformGeometry
 from aerostructures.geometry.structure_mesher import StructureMesher
 from aerostructures.geometry.wing_segment_props import WingSegmentProps
+from aerostructures.geometry.x_leading_edge import XLeadingEdge
 
 from aerostructures.flutter.flutter_external_code import Flutter
 from aerostructures.flutter.flutter_objective import FlutterObj
