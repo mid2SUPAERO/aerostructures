@@ -14,7 +14,7 @@ from aerostructures.aerodynamics.aerodynamics_problem_dimensions import AeroProb
 from aerostructures.aerodynamics.aerodynamics_problem_params import AeroProblemParams
 from aerostructures.aerodynamics.aerodynamics_ref_coord import AeroRefCoord
 from aerostructures.aerodynamics.panair import Panair
-from aerostructures.aerodynamics.adflow_component import ADflow
+#from aerostructures.aerodynamics.adflow_component import ADflow
 from aerostructures.aerodynamics.wave_drag import WaveDrag
 
 from aerostructures.structures_static.nastran_static import NastranStatic
