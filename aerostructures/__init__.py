@@ -35,6 +35,7 @@ from aerostructures.geometry.panair_mesher import PanairMesher
 from aerostructures.geometry.planform_geometry import PlanformGeometry
 from aerostructures.geometry.structure_mesher import StructureMesher
 from aerostructures.geometry.wing_segment_props import WingSegmentProps
+from aerostructures.geometry.x_leading_edge import XLeadingEdge
 from aerostructures.geometry.aero_hifi_mesher import AeroHiFiMesher
 from aerostructures.geometry.surface_generator import SurfaceGenerator
 

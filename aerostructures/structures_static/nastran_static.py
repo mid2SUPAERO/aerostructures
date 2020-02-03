@@ -67,6 +67,9 @@ class NastranStatic(ExternalCode):
         #Vector containing the concentrated masses' values
         self.add_param('m', val=np.zeros(self.mn))
 
+        #Vector containing the nonstructural mass per unit area for each region
+        self.add_param('nsm', val=np.zeros(self.tn))
+        
         #Vector containing the cross section (area) of the stringers
         self.add_param('s', val=np.zeros(self.sn))
 
@@ -140,6 +143,7 @@ class NastranStatic(ExternalCode):
         node_coord_all = params['node_coord_all']
         t = params['t']
         m = params['m']
+        nsm = params['nsm']                   
         s = params['s']
         Ix = params['Ix']
         Iy = params['Iy']
@@ -171,6 +175,10 @@ class NastranStatic(ExternalCode):
         for i in range(len(m)):
             input_data['m'+str(i+1)] = print_float_8(m[i])
 
+        #Assign each nonstructural mass value to its corresponding ID in the input data dictionary
+        for i in range(len(nsm)):
+            input_data['nsm'+str(i+1)] = print_float_8(nsm[i])
+            
         #Assign each stringer section and bending inertias values to their corresponding ID in the input data dictionary
         for i in range(len(s)):
             input_data['s'+str(i+1)] = print_float_8(s[i])
