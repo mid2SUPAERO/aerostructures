@@ -105,7 +105,6 @@ class PanairMesher(ExternalCode):
 
             #Coordinates of the reference airfoil's lower surface
             lower_coord = []
-
             with open(ref_airfoil_file) as f:
                 lines = f.readlines()
                 lines = [i.split() for i in lines]
