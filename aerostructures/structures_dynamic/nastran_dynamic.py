@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 
-from openmdao.api import ExternalCodeComp
+from openmdao.api import ExternalCode
 
 import numpy as np
 
@@ -18,14 +18,15 @@ from aerostructures.number_formatting.field_writer_8 import print_float_8
 
 from aerostructures.number_formatting.is_number import isint
 
-class NastranDynamic(ExternalCodeComp):
+class NastranDynamic(ExternalCode):
     template_file = 'nastran_dynamic_template.inp'
 
     output_file = 'nastran_dynamic.out'
 
+
     def __init__(self, node_id_all, tn, mn, sn, M, eigr, F1, free_free=False):
         super(NastranDynamic, self).__init__()
-        
+
         #Identification number of all the structural nodes
         self.node_id_all = node_id_all
 
@@ -53,33 +54,32 @@ class NastranDynamic(ExternalCodeComp):
         #Boolean flag indicating modal analysis with free-free conditions
         self.free_free = free_free
 
-    def setup(self):
         #Coordinates of all structural nodes
-        self.add_input('node_coord_all', val=np.zeros((self.ns_all, 3)))
+        self.add_param('node_coord_all', val=np.zeros((self.ns_all, 3)))
 
         #Vector containing the thickness of each region
-        self.add_input('t', val=np.zeros(self.tn))
+        self.add_param('t', val=np.zeros(self.tn))
 
         #Vector containing the concentrated masses' values
-        self.add_input('m', val=np.zeros(self.mn))
+        self.add_param('m', val=np.zeros(self.mn))
 
         #Vector containing the cross section (area) of the stringers
-        self.add_input('s', val=np.zeros(self.sn))
+        self.add_param('s', val=np.zeros(self.sn))
 
         #Vector containing first bending inertia of the stringers
-        self.add_input('Ix', val=np.zeros(self.sn))
+        self.add_param('Ix', val=np.zeros(self.sn))
 
         #Vector containing second bending inertia of the stringers
-        self.add_input('Iy', val=np.zeros(self.sn))
+        self.add_param('Iy', val=np.zeros(self.sn))
 
         #Young's modulus
-        self.add_input('E', val=1.)
+        self.add_param('E', val=1.)
 
         #Poisson's ratio
-        self.add_input('nu', val=0.3)
+        self.add_param('nu', val=0.3)
 
         #Material density
-        self.add_input('rho_s', val=1.)
+        self.add_param('rho_s', val=1.)
 
         #Numpy array containing the N normal modes
         self.add_output('phi', val=np.zeros((3*self.ns_all, self.M)))
@@ -106,40 +106,40 @@ class NastranDynamic(ExternalCodeComp):
         else:
             self.options['command'] = ['nastran.cmd', self.input_filepath.rstrip('.inp')]
 
-    def compute(self, inputs, outputs):
+    def solve_nonlinear(self, params, unknowns, resids):
 
         # Generate the input file for Nastran from the input file template and the design variables
-        self.create_input_file(inputs)
+        self.create_input_file(params)
 
-        # Parent compute function actually runs the external code
-        super(NastranDynamic, self).compute(inputs, outputs)
+        # Parent solve_nonlinear function actually runs the external code
+        super(NastranDynamic, self).solve_nonlinear(params, unknowns, resids)
 
         output_data = self.get_output_data()
 
         # Parse the output file from the external code and set the value of the eigenvectorss
-        outputs['phi'] = output_data['phi']
+        unknowns['phi'] = output_data['phi']
 
         # Parse the output file from the external code and set the value of the eigenvalues
-        outputs['eigval'] = output_data['eigval']
+        unknowns['eigval'] = output_data['eigval']
 
         # Parse the output file from the external code and set the value of the generalized masses
-        outputs['gen_mass'] = output_data['gen_mass']
+        unknowns['gen_mass'] = output_data['gen_mass']
 
         # Parse the output file from the external code and set the value of the total mass
-        outputs['mass'] = output_data['mass']
+        unknowns['mass'] = output_data['mass']
 
 
-    def create_input_file(self, inputs):
+    def create_input_file(self, params):
 
-        node_coord_all = inputs['node_coord_all']
-        t = inputs['t']
-        m = inputs['m']
-        s = inputs['s']
-        Ix = inputs['Ix']
-        Iy = inputs['Iy']
-        E = inputs['E']
-        nu = inputs['nu']
-        rho_s = inputs['rho_s']
+        node_coord_all = params['node_coord_all']
+        t = params['t']
+        m = params['m']
+        s = params['s']
+        Ix = params['Ix']
+        Iy = params['Iy']
+        E = params['E']
+        nu = params['nu']
+        rho_s = params['rho_s']
 
         input_data = {}
 

@@ -10,12 +10,13 @@ import math
 
 import numpy as np
 
-from openmdao.api import ExternalCodeComp
+from openmdao.api import ExternalCode
 
-class PanairMesher(ExternalCodeComp):
+class PanairMesher(ExternalCode):
     geo_script = 'aero_jig.geo'
 
     jig_mesh = 'aero_jig.msh'
+
 
     def __init__(self, n_sec, na, na_unique, network_info, ref_airfoil_file):
         super(PanairMesher, self).__init__()
@@ -35,23 +36,22 @@ class PanairMesher(ExternalCodeComp):
         #Filename of the reference airfoil file
         self.ref_airfoil_file = ref_airfoil_file
 
-    def setup(self):
         #Coordinates x,y,z of the leading edge for all sections
-        self.add_input('x_le', val=np.zeros(self.n_sec))
-        self.add_input('y_le', val=np.zeros(self.n_sec))
-        self.add_input('z_le', val=np.zeros(self.n_sec))
+        self.add_param('x_le', val=np.zeros(n_sec))
+        self.add_param('y_le', val=np.zeros(n_sec))
+        self.add_param('z_le', val=np.zeros(n_sec))
 
         #Geometric twist for all sections
-        self.add_input('theta', val=np.zeros(self.n_sec))
+        self.add_param('theta', val=np.zeros(n_sec))
 
         #Thickness-to-chord ratio for all sections
-        self.add_input('tc', val=np.zeros(self.n_sec))
+        self.add_param('tc', val=np.zeros(n_sec))
 
         #Maximum camber-to-chord ratio for all sections
-        self.add_input('camc', val=np.zeros(self.n_sec))
+        self.add_param('camc', val=np.zeros(n_sec))
 
         #Chord length for all sections
-        self.add_input('chords', val=np.zeros(self.n_sec))
+        self.add_param('chords', val=np.zeros(n_sec))
 
         #Coordinates of the jig shape aerodynamic points
         self.add_output('apoints_coord', val=np.zeros((self.na, 3)))
@@ -73,25 +73,25 @@ class PanairMesher(ExternalCodeComp):
         else:
             self.options['command'] = ['panair', self.input_filepath]
 
-    def compute(self, inputs, outputs):
+    def solve_nonlinear(self, params, unknowns, resids):
 
         #Get the coordinates, tc, and camc of the reference airfoil file
         ref_airfoil = self.read_reference_airfoil()
 
         #Generate the gmsh script defining the geometry
-        self.create_gmsh_script(inputs, ref_airfoil)
+        self.create_gmsh_script(params, ref_airfoil)
 
-        # Parent compute function actually runs the external code
-        super(PanairMesher, self).compute(inputs, outputs)
+        # Parent solve_nonlinear function actually runs the external code
+        super(PanairMesher, self).solve_nonlinear(params, unknowns, resids)
 
         #Get output data from the Panair output file
         aero_points = self.get_aero_points()
 
         #Output jig shape aerodynamic mesh coordinates
-        outputs['apoints_coord'] = aero_points['apoints_coord']
+        unknowns['apoints_coord'] = aero_points['apoints_coord']
 
         #Output unique jig shape aerodynamic mesh coordinates
-        outputs['apoints_coord_unique'] = aero_points['apoints_coord_unique']
+        unknowns['apoints_coord_unique'] = aero_points['apoints_coord_unique']
 
 
     def read_reference_airfoil(self):
@@ -149,18 +149,18 @@ class PanairMesher(ExternalCodeComp):
 
         return ref_airfoil
 
-    def create_gmsh_script(self, inputs, ref_airfoil):
+    def create_gmsh_script(self, params, ref_airfoil):
 
         geo_script = self.geo_script
         network_info = self.network_info
 
-        xle = inputs['x_le']
-        yle = inputs['y_le']
-        zle = inputs['z_le']
-        theta = inputs['theta']
-        c = inputs['chords']
-        tc = inputs['tc']
-        camc = inputs['camc']
+        xle = params['x_le']
+        yle = params['y_le']
+        zle = params['z_le']
+        theta = params['theta']
+        c = params['chords']
+        tc = params['tc']
+        camc = params['camc']
 
         tc_ref = ref_airfoil['tc_ref']
         camc_ref = ref_airfoil['camc_ref']

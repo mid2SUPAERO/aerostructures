@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-"""
 
 from __future__ import print_function
 
@@ -16,12 +14,14 @@ from aerostructures.number_formatting.field_writer_8 import print_float_8
 
 from aerostructures.number_formatting.is_number import isfloat, isint
 
-class NastranStatic(ExternalCode):
-    template_file = 'nastran_static_template.inp'
+from aerostructures.number_formatting.nastran_pch_reader import PchParser
+
+class NastranStaticPZT(ExternalCode):
+    template_file = 'nastran_static_template_pzt.inp'
 
 
-    def __init__(self, node_id, node_id_all, n_stress, tn, mn, case_name):
-        super(NastranStatic, self).__init__()
+    def __init__(self, node_id, node_id_all, n_stress, tn, tpn, mn, case_name, an=0):
+        super(NastranStaticPZT, self).__init__()
 
         #Identification number of the outer surface nodes
         self.node_id = node_id
@@ -40,9 +40,15 @@ class NastranStatic(ExternalCode):
 
         #Number of regions where the thicknesses are defined
         self.tn = tn
+	
+    	#Number of regions where the PZT thicknesses are defined
+        self.tpn = tpn
 
         #Number of concentrated masses
         self.mn = mn
+        
+        #Number of rod sections
+        self.an = an
 
         #Case name (for file naming)
         self.case_name = case_name
@@ -56,8 +62,20 @@ class NastranStatic(ExternalCode):
         #Vector containing the thickness of each region
         self.add_param('t', val=np.zeros(self.tn))
 
+    	#Vector containing the offset of the bottom surf. from the reference plane
+        #self.add_param('z0', val=np.zeros(self.tn))
+
+    	#Vector containing the thickness of each PZT region
+        self.add_param('tp', val=np.zeros(self.tpn))
+
+    	#Vector containing the voltage of each patch / PZT region
+        self.add_param('Volt', val=np.zeros(self.tpn))
+
         #Vector containing the concentrated masses' values
         self.add_param('m', val=np.zeros(self.mn))
+        
+        #Vector containing the cross section (area) of rod elements
+        self.add_param('a', val=np.zeros(self.an))
 
         #Young's modulus
         self.add_param('E', val=1.)
@@ -67,6 +85,21 @@ class NastranStatic(ExternalCode):
 
         #Material density
         self.add_param('rho_s', val=1.)
+
+    	#Piezoelectric constant
+        self.add_param('d31', val=1.)
+        
+        #Load factor (maneuver)
+        self.add_param('n', val=1.)
+
+	#PZT Young's modulus
+        self.add_param('E_pzt', val=1.)
+
+	#PZT Poisson's ratio
+        self.add_param('nu_pzt', val=0.3)
+
+	#PZT density
+        self.add_param('rho_pzt', val=1.)
 
         #Displacements of the nodes on the outer surface
         self.add_output('u', val=np.zeros((self.ns, 3)))
@@ -98,7 +131,7 @@ class NastranStatic(ExternalCode):
         self.create_input_file(params)
 
         # Parent solve_nonlinear function actually runs the external code
-        super(NastranStatic, self).solve_nonlinear(params, unknowns, resids)
+        super(NastranStaticPZT, self).solve_nonlinear(params, unknowns, resids)
 
         output_data = self.get_output_data()
 
@@ -116,10 +149,21 @@ class NastranStatic(ExternalCode):
         f_node = params['f_node']
         node_coord_all = params['node_coord_all']
         t = params['t']
+        z0 = -t/2.
         m = params['m']
         E = params['E']
         nu = params['nu']
+        a = params['a']
         rho_s = params['rho_s']
+        n = params['n']
+        tp = params['tp']
+        V = params['Volt']
+        d31 = params['d31']
+        E_pzt = params['E_pzt']
+        nu_pzt = params['nu_pzt']
+        rho_pzt = params['rho_pzt']
+
+
 
         input_data = {}
 
@@ -139,9 +183,17 @@ class NastranStatic(ExternalCode):
         for i in range(len(t)):
             input_data['t'+str(i+1)] = print_float_8(t[i])
 
+	#Assign each offset to its corresponding ID in the input data dictionary
+        for i in range(len(z0)):
+            input_data['z0'+str(i+1)] = print_float_8(z0[i])
+
         #Assign each mass value to its corresponding ID in the input data dictionary
         for i in range(len(m)):
             input_data['m'+str(i+1)] = print_float_8(m[i])
+        
+        #Assign each rod section value to its corresponding ID in the input data dictionary
+        for i in range(len(a)):
+            input_data['a'+str(i+1)] = print_float_8(a[i])
 
         #Assign the Young's modulus to its input data dictionary key
         input_data['E'] = print_float_8(E)
@@ -152,11 +204,31 @@ class NastranStatic(ExternalCode):
         #Assign the material density to its input data dictionary key
         input_data['rho_s'] = print_float_8(rho_s)
 
+	#Assign the PZT Young's modulus to its input data dictionary key
+        input_data['E_pzt'] = print_float_8(E_pzt)
+
+        #Assign the PZT Poisson's ratio to its input data dictionary key
+        input_data['nu_pzt'] = print_float_8(nu_pzt)
+
+        #Assign the PZT density to its input data dictionary key
+        input_data['rho_pzt'] = print_float_8(rho_pzt)
+
+	#Assign the PZT constant to its input data dictionary key
+    #Assign each PZT thickness value to its corresponding ID in the input data dictionary
+	#Assign each PZT voltage (temperature in nastran) to its corresponding ID in the input data dictionary
+        for i in range(len(tp)):
+            input_data['alpha31_'+str(i+1)] = print_float_8(d31/tp[i])
+            input_data['tp'+str(i+1)] = print_float_8(tp[i])
+            input_data['V'+str(i+1)] = print_float_8(V[i])
+        
+        #Assign the negative of the load factor to its input data dictionary key
+        input_data['n'] = print_float_8(n)
+
         #Read the input file template
         f = open(self.template_file,'r')
         tmp = f.read()
         f.close()
-
+        #print(input_data)
         #Replace the input data contained in the dictionary onto the new input file
         new_file = tmp.format(**input_data)
 
@@ -180,8 +252,23 @@ class NastranStatic(ExternalCode):
         u = np.zeros((self.ns,3))
 
         shell_stress = []
+        rod_stress = []
 
         mass = 0.
+        
+        #Read the Nastran punch file (.pnh) and extract displacement and stress data
+        parser = PchParser(self.output_filepath)
+        elm_stress = parser.get_stresses(1)
+        
+        #Write shell principal stresses onto a list (upper and lower shell faces)
+        for elm in elm_stress:
+            #Write shell principal stresses onto a list (upper and lower shell faces)
+            if len(elm_stress[elm]) == 16:
+                shell_stress.append(
+                    ((elm_stress[elm][5], elm_stress[elm][6]), (elm_stress[elm][13], elm_stress[elm][14])))
+            #Write rod axial stresses into a list
+            elif len(elm_stress[elm]) == 4:
+                rod_stress.append(elm_stress[elm][0])
 
         #Read the Nastran punch file (.pnh) and extract displacement and stress data
         with open(self.output_filepath) as f:
@@ -197,11 +284,6 @@ class NastranStatic(ExternalCode):
                         u[self.node_id.index(lines[i][0])][1] = lines[i][3]
                         u[self.node_id.index(lines[i][0])][2] = lines[i][4]
 
-                    if isint(lines[i][0]) and isfloat(lines[i][1]):
-                        #Store stresses only if the element is of shell type:
-                        if lines[i+1][0] == '-CONT-' and lines[i+2][0] == '-CONT-' and lines[i+3][0] == '-CONT-' and lines[i+4][0] == '-CONT-' and lines[i+5][0] == '-CONT-':
-                            #Write shell principal stresses onto a list (upper and lower shell faces)
-                            shell_stress.append(((float(lines[i+1][3]), float(lines[i+2][1])), (float(lines[i+4][2]), float(lines[i+4][3]))))
 
         #Compute the Von Mises Stress on the structure
         VM = []
@@ -209,7 +291,9 @@ class NastranStatic(ExternalCode):
         for s in shell_stress:
             VM.append(np.sqrt(s[0][0]**2 - s[0][0]*s[0][1] + s[0][1]**2))
             VM.append(np.sqrt(s[1][0]**2 - s[1][0]*s[1][1] + s[1][1]**2))
-
+        
+        for r in rod_stress:
+            VM.append(abs(r))
         VMStress = np.asarray(VM)
 
         #Read the Nastran output file (.out) and extract the total mass of the structure (M)
@@ -227,5 +311,4 @@ class NastranStatic(ExternalCode):
         output_data['u'] = u
         output_data['VMStress'] = VMStress
         output_data['mass'] = mass
-
         return output_data

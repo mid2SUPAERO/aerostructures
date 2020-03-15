@@ -6,14 +6,15 @@ from __future__ import print_function
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+from openmdao.api import Component
 
-#ExplicitComponent which computes scalar functions related to the difference between the reference and actual eigenvectors and eigenvalues
-class ModalFunctions(ExplicitComponent):
+#Component which computes scalar functions related to the difference between the reference and actual eigenvectors and eigenvalues
+class ModalFunctions(Component):
+
 
     def __init__(self, node_id_all, N, M, mode_tracking=True):
         super(ModalFunctions, self).__init__()
-        
+
         #Identification number of all the structural nodes
         self.node_id_all = node_id_all
 
@@ -29,30 +30,29 @@ class ModalFunctions(ExplicitComponent):
         #Mode-tracking option
         self.mode_tracking = mode_tracking
 
-    def setup(self):
         #Numpy array containing the M extracted normal modes
-        self.add_input('phi', val=np.zeros((3*self.ns_all, self.M)))
+        self.add_param('phi', val=np.zeros((3*self.ns_all, self.M)))
 
         #Numpy array containing the N refernece normal modes
-        self.add_input('phi_ref', val=np.zeros((3*self.ns_all, self.N)))
+        self.add_param('phi_ref', val=np.zeros((3*self.ns_all, self.N)))
 
         #Vector containing the extracted eigenvalues
-        self.add_input('eigval', val=np.zeros(self.M))
+        self.add_param('eigval', val=np.zeros(M))
 
         #Vector containing the reference eigenvalues
-        self.add_input('eigval_ref', val=np.zeros(self.N))
+        self.add_param('eigval_ref', val=np.zeros(N))
 
         #Total mass of the scaled model
-        self.add_input('mass', val=0.)
+        self.add_param('mass', val=0.)
 
         #Total mass of the reference model
-        self.add_input('mass_ref', val=0.)
+        self.add_param('mass_ref', val=0.)
 
         #Frequency ratio between Full-Scale and scaled models
-        self.add_input('omega_ratio', val=1.)
+        self.add_param('omega_ratio', val=1.)
 
         #Mass ratio between Full-Scale and scaled models
-        self.add_input('mass_ratio', val=1.)
+        self.add_param('mass_ratio', val=1.)
 
         #Norm of the difference between the vectors containing reference and actual eigenvalues
         self.add_output('delta_omega', val=0.)
@@ -64,29 +64,29 @@ class ModalFunctions(ExplicitComponent):
         self.add_output('ord_phi', val=np.zeros((3*self.ns_all, self.N)))
 
         #Reordered eigenvalues according to MAC values
-        self.add_output('ord_eigval', val=np.zeros(self.N))
+        self.add_output('ord_eigval', val=np.zeros(N))
 
         #MAC matrix trace
         self.add_output('MAC_trace', val=0.)
 
 
-    def compute(self, inputs, outputs):
+    def solve_nonlinear(self, params, unknowns, resids):
 
-        phi = inputs['phi']
+        phi = self.params['phi']
 
-        phi_ref = inputs['phi_ref']
+        phi_ref = self.params['phi_ref']
 
-        eigval = inputs['eigval']
+        eigval = self.params['eigval']
 
-        eigval_ref = inputs['eigval_ref']
+        eigval_ref = self.params['eigval_ref']
 
-        mass = inputs['mass']
+        mass = self.params['mass']
 
-        mass_ref = inputs['mass_ref']
+        mass_ref = self.params['mass_ref']
 
-        omega_ratio = inputs['omega_ratio']
+        omega_ratio = self.params['omega_ratio']
 
-        mass_ratio = inputs['mass_ratio']
+        mass_ratio = self.params['mass_ratio']
 
         N = self.N
 
@@ -137,12 +137,12 @@ class ModalFunctions(ExplicitComponent):
         delta_mass = mass - mass_ratio*mass_ref
 
         #Set the computed values as outputs
-        outputs['delta_omega'] = delta_omega
+        unknowns['delta_omega'] = delta_omega
 
-        outputs['delta_mass'] = delta_mass
+        unknowns['delta_mass'] = delta_mass
 
-        outputs['ord_phi'] = ord_phi
+        unknowns['ord_phi'] = ord_phi
 
-        outputs['ord_eigval'] = ord_eigval
+        unknowns['ord_eigval'] = ord_eigval
 
-        outputs['MAC_trace'] = ord_MAC.trace()
+        unknowns['MAC_trace'] = ord_MAC.trace()

@@ -6,9 +6,9 @@ from __future__ import print_function
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+from openmdao.api import Component
 
-class PlanformGeometry(ExplicitComponent):
+class PlanformGeometry(Component):
 
     def __init__(self, n_sec, b_sec):
         super(PlanformGeometry, self).__init__()
@@ -19,24 +19,23 @@ class PlanformGeometry(ExplicitComponent):
         #Number of the section of the wing break (1 is the root section)
         self.b_sec = b_sec
 
-    def setup(self):
         #root chord
-        self.add_input('cr', val=0.)
+        self.add_param('cr', val=0.)
 
         #break section chord
-        self.add_input('cb', val=0.)
+        self.add_param('cb', val=0.)
 
         #tip section chord
-        self.add_input('ct', val=0.)
+        self.add_param('ct', val=0.)
 
         #sweep angle
-        self.add_input('sweep', val=0.)
+        self.add_param('sweep', val=0.)
 
         #root leading edge position
-        self.add_input('xr', val=0.)
+        self.add_param('xr', val=0.)
 
         #Vector of section leading edge positions (spanwise)
-        self.add_input('y_le', val=np.zeros(self.n_sec))
+        self.add_param('y_le', val=np.zeros(self.n_sec))
 
         #Vector of section chords
         self.add_output('chords', val=np.zeros(self.n_sec))
@@ -44,20 +43,20 @@ class PlanformGeometry(ExplicitComponent):
         #Vector of section leading edge positions
         self.add_output('x_le', val=np.zeros(self.n_sec))
 
-    def compute(self, inputs, outputs):
+    def solve_nonlinear(self, params, unknowns, resids):
 
         n_sec = self.n_sec
         b_sec = self.b_sec
 
-        cr = inputs['cr']
-        cb = inputs['cb']
-        ct = inputs['ct']
-        sweep = inputs['sweep']
-        xr = inputs['xr']
-        y_le = inputs['y_le']
+        cr = params['cr']
+        cb = params['cb']
+        ct = params['ct']
+        sweep = params['sweep']
+        xr = params['xr']
+        y_le = params['y_le']
 
         #Compute the x position of the leading edge of each section
-        outputs['x_le'] = xr*np.ones(n_sec) + np.tan(np.radians(sweep))*(y_le-y_le[0]*np.ones(n_sec))
+        unknowns['x_le'] = xr*np.ones(n_sec) + np.tan(np.radians(sweep))*(y_le-y_le[0]*np.ones(n_sec))
 
         #Compute the chord of each section
         #First, for the sections comprised between the root and the wing break
@@ -66,4 +65,4 @@ class PlanformGeometry(ExplicitComponent):
 
         chords = np.concatenate((c1, c2))
 
-        outputs['chords'] = chords
+        unknowns['chords'] = chords

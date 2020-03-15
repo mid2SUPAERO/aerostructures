@@ -6,14 +6,14 @@ from __future__ import print_function
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+from openmdao.api import Component
 
 '''
-ExplicitComponent which takes the matrix of normal modes on a grid and gives the matrix of normal modes on another grid according to the interpolation matrix H
+Component which takes the matrix of normal modes on a grid and gives the matrix of normal modes on another grid according to the interpolation matrix H
 '''
 
 
-class ModeTransfer(ExplicitComponent):
+class ModeTransfer(Component):
 
     def __init__(self, nr, nm, N, BC):
         super(ModeTransfer, self).__init__()
@@ -30,22 +30,20 @@ class ModeTransfer(ExplicitComponent):
         # Table indicating whether a DOF in the target model is either free (1) or constrained (0)
         self.BC = BC
 
-    def setup(self):
-
         # Interpolation matrix H (xm = H xr)
-        self.add_input('H', val=np.zeros((self.nm, self.nr)))
+        self.add_param('H', val=np.zeros((self.nm, self.nr)))
 
         # Matrix of source normal modes
-        self.add_input('Phi_r', val=np.zeros((self.nr, 6*self.N)))
+        self.add_param('Phi_r', val=np.zeros((self.nr, 6*N)))
 
         # Matrix of target normal modes
-        self.add_output('Phi_m', val=np.zeros((self.nm, 6*self.N)))
+        self.add_output('Phi_m', val=np.zeros((self.nm, 6*N)))
 
-    def compute(self, inputs, outputs):
+    def solve_nonlinear(self, params, unknowns, resids):
 
-        Phi_r = inputs['Phi_r']
+        Phi_r = params['Phi_r']
 
-        H = inputs['H']
+        H = params['H']
 
         N = self.N
 
@@ -57,4 +55,4 @@ class ModeTransfer(ExplicitComponent):
         # Apply the known boundary conditions to the target model displacements
         Phi_m = np.multiply(Phi_m, np.tile(BC, N))
 
-        outputs['Phi_m'] = Phi_m
+        unknowns['Phi_m'] = Phi_m

@@ -6,13 +6,14 @@ from __future__ import print_function
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+from openmdao.api import Component
 
 '''
 Component which takes the nodal displacements and gives the displacements of
 the aerodynamic points
 '''
-class DisplacementTransfer(ExplicitComponent):
+class DisplacementTransfer(Component):
+
 
     def __init__(self, na, ns):
         super(DisplacementTransfer, self).__init__()
@@ -23,22 +24,21 @@ class DisplacementTransfer(ExplicitComponent):
         #Number of nodes of the structural mesh on the outer skin
         self.ns = ns
 
-    def setup(self):
         #Interpolation matrix H (xa = H xs)
-        self.add_input('H', val=np.zeros((self.na, self.ns)))
+        self.add_param('H', val=np.zeros((self.na, self.ns)))
 
         #Nodal displacements of the outer surface
-        self.add_input('u', val=np.zeros((self.ns, 3)))
+        self.add_param('u', val=np.zeros((self.ns, 3)))
 
         #Displacements of the aerodynamic grid points
         self.add_output('delta', val=np.zeros((self.na, 3)))
 
 
-    def compute(self, inputs, outputs):
+    def solve_nonlinear(self, params, unknowns, resids):
 
-        u = inputs['u']
+        u = params['u']
 
-        H = inputs['H']
+        H = params['H']
 
         #Apply the interpolation matrix to obtain the aerodynamic points displacements
-        outputs['delta'] = H.dot(u)
+        unknowns['delta'] = H.dot(u)

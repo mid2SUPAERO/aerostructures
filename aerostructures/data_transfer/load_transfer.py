@@ -6,13 +6,14 @@ from __future__ import print_function
 
 import numpy as np
 
-from openmdao.api import ExplicitComponent
+from openmdao.api import Component
 
 '''
-ExplicitComponent which takes the forces at the aerodynamic points and gives the
+Component which takes the forces at the aerodynamic points and gives the
 nodal forces
 '''
-class LoadTransfer(ExplicitComponent):
+class LoadTransfer(Component):
+
 
     def __init__(self, na, ns):
         super(LoadTransfer, self).__init__()
@@ -23,22 +24,21 @@ class LoadTransfer(ExplicitComponent):
         #Number of nodes of the structural mesh on the outer skin
         self.ns = ns
 
-    def setup(self):
         #Interpolation matrix H (xa = H xs)
-        self.add_input('H', val=np.zeros((self.na, self.ns)))
+        self.add_param('H', val=np.zeros((self.na, self.ns)))
 
         #Forces on the aerodynamic grid points
-        self.add_input('f_a', val=np.zeros((self.na, 3)))
+        self.add_param('f_a', val=np.zeros((self.na, 3)))
 
         #Nodal forces of the outer surface
         self.add_output('f_node', val=np.zeros((self.ns, 3)))
 
 
-    def compute(self, inputs, outputs):
+    def solve_nonlinear(self, params, unknowns, resids):
 
-        f_a = inputs['f_a']
+        f_a = params['f_a']
 
-        H = inputs['H']
+        H = params['H']
 
         #Apply the transpose of the displacement interpolation matrix to obtain the nodal forces
-        outputs['f_node'] = np.transpose(H).dot(f_a)
+        unknowns['f_node'] = np.transpose(H).dot(f_a)

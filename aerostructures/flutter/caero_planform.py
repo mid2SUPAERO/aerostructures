@@ -2,11 +2,11 @@
 """
 """
 
-from openmdao.api import ExplicitComponent
+from openmdao.api import Component
 
 import numpy as np
 
-class CaeroPlanform(ExplicitComponent):
+class CaeroPlanform(Component):
     
     def __init__(self, y):
         super(CaeroPlanform, self).__init__()
@@ -16,23 +16,21 @@ class CaeroPlanform(ExplicitComponent):
         
         #Number of CAERO cards (sections)
         self.n_sec = len(y)
-
-    def setup(self):
         
         #root chord
-        self.add_input('cr', val=1.)
+        self.add_param('cr', val=1.)
         
         #break section chord
-        self.add_input('cb', val=1.)
+        self.add_param('cb', val=1.)
         
         #tip section
-        self.add_input('ct', val=1.)
+        self.add_param('ct', val=1.)
         
         #sweep angle
-        self.add_input('sweep', val=1.)
+        self.add_param('sweep', val=1.)
         
         #root leading edge position
-        self.add_input('xr', val=1.)
+        self.add_param('xr', val=1.)
         
         #Vector of section chords
         self.add_output('c', val=np.zeros(self.n_sec))
@@ -40,15 +38,15 @@ class CaeroPlanform(ExplicitComponent):
         #Vector of section leading edge positions
         self.add_output('x_le', val=np.zeros(self.n_sec))
         
-    def compute(self, inputs, outputs):
+    def solve_nonlinear(self, params, unknowns, resids):
         
         n_sec = self.n_sec
         y = self.y
-        cr = inputs['cr']
-        cb = inputs['cb']
-        ct = inputs['ct']
-        sweep = inputs['sweep']
-        xr = inputs['xr']
+        cr = params['cr']
+        cb = params['cb']
+        ct = params['ct']
+        sweep = params['sweep']
+        xr = params['xr']
         
         c = np.zeros(self.n_sec)
         c[0] = cr
@@ -56,6 +54,6 @@ class CaeroPlanform(ExplicitComponent):
         c[2] = cb - (cb-ct)/(y[3]-y[1])*(y[2]-y[1])
         c[3] = ct
         
-        outputs['c'] = c
+        unknowns['c'] = c
         
-        outputs['x_le'] = xr*np.ones(n_sec) + np.tan(np.radians(sweep))*(y-y[0]*np.ones(n_sec))
+        unknowns['x_le'] = xr*np.ones(n_sec) + np.tan(np.radians(sweep))*(y-y[0]*np.ones(n_sec))

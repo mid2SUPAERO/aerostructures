@@ -4,7 +4,7 @@
 
 from __future__ import print_function
 
-from openmdao.api import ExternalCodeComp
+from openmdao.api import ExternalCode
 
 import numpy as np
 
@@ -21,7 +21,7 @@ from pyNastran.op4.op4 import OP4
 from aerostructures import isint, isfloat, print_float_8
 
 
-class Flutter(ExternalCodeComp):
+class Flutter(ExternalCode):
     template_file = 'flutter_input_template.bdf'
 
     output_file = 'nastran_flutter.f06'
@@ -44,25 +44,23 @@ class Flutter(ExternalCodeComp):
         # Identification number of the target grid nodes
         self.node_id = node_id
 
-    def setup(self):
-
         # Vector of section chords
-        self.add_input('c', val=np.zeros(self.n_sec))
+        self.add_param('c', val=np.zeros(n_sec))
 
         # Vector of section leading edge positions
-        self.add_input('x_le', val=np.zeros(self.n_sec))
+        self.add_param('x_le', val=np.zeros(n_sec))
 
         # Coordinates of target grid
-        self.add_input('xs_m', val=np.zeros((self.nm, 3)))
+        self.add_param('xs_m', val=np.zeros((self.nm, 3)))
 
         # Matrix of target normal modes
-        self.add_input('Phi_m', val=np.zeros((self.nm, 6*self.N)))
+        self.add_param('Phi_m', val=np.zeros((self.nm, 6*N)))
 
         # Numpy array containing the real part of the F N by N aerodynamic coefficient matrices
-        self.add_output('Qr', val=np.zeros((self.N, self.F*self.N)))
+        self.add_output('Qr', val=np.zeros((N, F*N)))
 
         # Numpy array containing the imaginary part of the F N by N aerodynamic coefficient matrices
-        self.add_output('Qi', val=np.zeros((self.N, self.F*self.N)))
+        self.add_output('Qi', val=np.zeros((N, F*N)))
 
         self.input_filepath = 'nastran_flutter.bdf'
         self.output_filepath = 'nastran_flutter.f06'
@@ -74,30 +72,30 @@ class Flutter(ExternalCodeComp):
         self.options['command'] = ['cmd.exe', '/c',
                                    r'nastran.exe', self.input_filepath]
 
-    def compute(self, inputs, outputs):
+    def solve_nonlinear(self, params, unknowns, resids):
 
         # Generate the OP4 file containing the reference modes interpolated onto the target grid
-        self.create_input_modes(inputs)
+        self.create_input_modes(params)
 
         # Generate the input file for Nastran from the input file template and the design variables
-        self.create_input_file(inputs)
+        self.create_input_file(params)
 
-        # Parent compute function actually runs the external code
-        super(Flutter, self).compute(inputs, outputs)
+        # Parent solve_nonlinear function actually runs the external code
+        super(Flutter, self).solve_nonlinear(params, unknowns, resids)
 
         output_data = self.get_output_data()
 
         # Parse the output file from the external code and set the real part of the aerodynamic matrices
-        outputs['Qr'] = output_data['Qr']
+        unknowns['Qr'] = output_data['Qr']
 
         # Parse the output file from the external code and set the imaginary part of the aerodynamic matrices
-        outputs['Qi'] = output_data['Qi']
+        unknowns['Qi'] = output_data['Qi']
 
-    def create_input_modes(self, inputs):
+    def create_input_modes(self, params):
 
         N = self.N
 
-        Phi_m = inputs['Phi_m']
+        Phi_m = params['Phi_m']
 
         # Split Phi_m into modes and put them into a list
         Phi_m_list = np.hsplit(Phi_m, N)
@@ -120,7 +118,7 @@ class Flutter(ExternalCodeComp):
         op4.write_op4('fort.21', {'PHDH': (2, PHDH)},
                       name_order=['PHDH'], is_binary=False)
 
-    def create_input_file(self, inputs):
+    def create_input_file(self, params):
 
         # Clean up old input and output files
         for filename in glob.glob(self.input_filepath.rstrip('bdf')+"*"):
@@ -129,9 +127,9 @@ class Flutter(ExternalCodeComp):
         n_sec = self.n_sec
         node_id = self.node_id
 
-        c = inputs['c']
-        x_le = inputs['x_le']
-        xs_m = inputs['xs_m']
+        c = params['c']
+        x_le = params['x_le']
+        xs_m = params['xs_m']
 
         input_data = {}
 
