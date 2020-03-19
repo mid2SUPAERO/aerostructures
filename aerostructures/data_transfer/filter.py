@@ -60,12 +60,12 @@ class Filter(Component):
             unknowns['us'] = ul
             self.ul_old = np.copy(ul)  
             self.aux = 1
-            print('::::::::Fidelity changed, displacement field imported from Lo-Fi::::::::')
+            print('::::::::Fidelity changed, displacement field imported::::::::')
             
         #Keeps current displacement field during the same MDA loop
         else:
             unknowns['us'] = u
-            print('::::::::Hi-Fi displacement field kept from previous Hi-Fi iteration::::::::')
+            print('::::::::Displacement field kept from previous iteration::::::::')
             
             
 
